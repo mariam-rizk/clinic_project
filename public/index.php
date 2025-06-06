@@ -1,21 +1,24 @@
 <?php
 require_once "../vendor/autoload.php";
-require_once "../config/database.php";
+require_once __DIR__ . '/../config/database.php';
 
 
 use App\core\Session;
 use App\core\Database;
+use App\controllers\AuthController;
+use App\controllers\ContactController;
 
 Session::start();
+$user = Session::get('user');
 
 $page = $_GET['page'] ?? 'home';
+$protectedPages = ['booking', 'history'];
 
-// $publicPages = ['home', 'login', 'register', 'contact', 'doctors', 'majors'];
-
-// if (!in_array($page, $publicPages) && !Session::has('user')) {
-//     header("Location: index.php?page=login");
-//     exit;
-// }
+if (in_array($page, $protectedPages) && !Session::has('user')) {
+    Session::set('success', 'You must login first!');
+    header("Location: ?page=login");
+    exit;
+}
 
 $db = Database::getInstance($config)->getConnection();
 
@@ -29,7 +32,7 @@ $pageTitle = match ($page) {
     'history' => 'history of bookings',
     'login' => 'login',
     'register' => 'register',
-    default => 'Document'
+    default => '404-Not Found'
 };
 
 include_once '../views/layouts/header.php';
@@ -43,11 +46,26 @@ switch ($page) {
         require '../views/auth/login.php';
         break;
 
-        
+    case 'login_controller':
+        $controller = new AuthController($db);
+        $controller->login();
+        break;
+  
     case 'register':
         require '../views/auth/register.php';
         break;
 
+
+
+    case 'register_controller':
+        $controller = new AuthController($db);
+        $controller->register();
+        break;
+
+    case 'logout':
+       $controller = new AuthController($db);
+       $controller->logout();
+       break;
 
     case 'doctors':
         require '../views/doctors/doctors.php';
@@ -68,6 +86,13 @@ switch ($page) {
     case 'contact':
         require '../views/contact_us/contact_form.php';
         break;
+    
+    case 'contact_controller':
+        $controller = new ContactController($db);
+        $controller->submitContactForm();
+        break;
+
+
 
     default:
         require '../views/errors/404.php';
@@ -75,3 +100,12 @@ switch ($page) {
 }
 
 include_once '../views/layouts/footer.php';
+
+
+
+
+
+
+
+
+

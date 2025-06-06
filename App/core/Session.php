@@ -15,7 +15,7 @@ class Session{
     }
 
     public static function get($key){
-        return $_SESSION[$key] ?? ""; 
+        return $_SESSION[$key] ?? null; 
     }
 
     public static function flash($key){
@@ -23,9 +23,8 @@ class Session{
         $value = $_SESSION[$key];
         unset($_SESSION[$key]);
         return $value;
-       }else{
-        return "$key is not available";
        }
+        return null;
     }
 
 

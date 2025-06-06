@@ -24,3 +24,5 @@
 
 <?php
 include_once 'nav.php';
+include_once __DIR__ . '/../../App/core/messages.php';
+
