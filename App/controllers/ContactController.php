@@ -2,6 +2,7 @@
 
 namespace App\controllers;
 
+use App\core\Mailer;
 use App\core\Session;
 use App\core\Validation;
 use App\models\Contact;
@@ -30,7 +31,7 @@ class ContactController
 
         $rules = [
             'phone' => ['required', 'phone'],
-            'subject' => ['required', 'string', 'min:3'],
+            'subject' => ['required', 'in:Appointment Inquiry,Medical Advice,Feedback,Complaint,Other'],
             'message' => ['required', 'string', 'min:10'],
         ];
 
@@ -47,10 +48,33 @@ class ContactController
             exit;
         }
 
+       
+
         $contactModel = new Contact($this->db);
         $contactModel->create($data);
 
-        Session::set('success', "Message sent successfully!");
+    $mailer = new Mailer();
+    
+    $body = "
+        <h3>New message from the contact form</h3>
+        <p><strong>Name:</strong> {$data['name']}</p>
+        <p><strong>Email:</strong> {$data['email']}</p>
+        <p><strong>Phone:</strong> {$data['phone']}</p>
+        <p><strong>Subject:</strong> {$data['subject']}</p>
+        <p><strong>Message:</strong><br>{$data['message']}</p>
+    ";
+    
+    
+    $to = 'c91870041@gmail.com';
+    $subject = 'New Contact Message: ' . $data['subject'];
+    $success = $mailer->sendMail($to, $subject, $body, $data['email'], $data['name']);
+    if($success){
+        Session::set('success', 'Message sent successfully!');
+    }else {
+        Session::set('error', 'Failed to send the message. Please try again later.');
+    }
+
+
         header("Location: ?page=contact");
         exit;
     }

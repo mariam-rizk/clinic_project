@@ -1,3 +1,6 @@
 [2025-05-26 11:36:04] ERROR: Database connection failed: SQLSTATE[HY000] [1049] Unknown database 'clini'
 [2025-05-26 11:36:58] ERROR: Database connection failed: SQLSTATE[HY000] [1045] Access denied for user 'roo'@'localhost' (using password: YES)
 [2025-05-26 11:50:02] ERROR: Database connection failed: SQLSTATE[HY000] [1049] Unknown database 'cinic'
+[2025-06-08 19:35:35] ERROR: Mail Error: SMTP Error: Could not authenticate.
+[2025-06-08 19:47:49] ERROR: Mail Error: SMTP Error: Could not authenticate.
+[2025-06-08 20:10:00] ERROR: Mail Error: SMTP Error: Could not authenticate.

@@ -37,7 +37,36 @@ class User
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         return $user ?: null;
     }
+
+    public function getById(int $id): array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
+    public function updateUserInfo(int $userId, array $data): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE users
+            SET name = :name, email = :email, phone = :phone, gender = :gender, date_of_birth = :date_of_birth
+            WHERE id = :user_id
+        ");
+        return $stmt->execute([
+            ':name' => $data['name'],
+            ':email' => $data['email'],
+            ':phone' => $data['phone'],
+            ':gender' => $data['gender'],
+            ':date_of_birth' => $data['date_of_birth'],
+            ':user_id' => $userId
+        ]);
+    }
+
+    
 }
+
+  
 
 
 

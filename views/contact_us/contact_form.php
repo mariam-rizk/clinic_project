@@ -51,14 +51,22 @@
 
        
                         <div class="mb-3">
-                            <label class="form-label required-label" for="subject">subject</label>
-                            <input type="text" name="subject" class="form-control  <?php if(isset($errors['subject'])) echo 'is-invalid'; ?>" id="subject" value="<?= htmlspecialchars($old['subject'] ?? '') ?>" required>
+                            <label class="form-label required-label" for="subject">Subject</label>
+                            <select name="subject" id="subject" class="form-select <?php if(isset($errors['subject'])) echo 'is-invalid'; ?>" required>
+                                <option value="" disabled <?= empty($old['subject']) ? 'selected' : '' ?>>Select a subject</option>
+                                <option value="Appointment Inquiry" <?= (isset($old['subject']) && $old['subject'] === 'Appointment Inquiry') ? 'selected' : '' ?>>Appointment Inquiry</option>
+                                <option value="Medical Advice" <?= (isset($old['subject']) && $old['subject'] === 'Medical Advice') ? 'selected' : '' ?>>Medical Advice</option>
+                                <option value="Feedback" <?= (isset($old['subject']) && $old['subject'] === 'Feedback') ? 'selected' : '' ?>>Feedback</option>
+                                <option value="Complaint" <?= (isset($old['subject']) && $old['subject'] === 'Complaint') ? 'selected' : '' ?>>Complaint</option>
+                                <option value="Other" <?= (isset($old['subject']) && $old['subject'] === 'Other') ? 'selected' : '' ?>>Other</option>
+                            </select>
                             <?php if (isset($errors['subject'])): ?>
                                 <?php foreach ($errors['subject'] as $error): ?>
                                     <div class="invalid-feedback"><?= htmlspecialchars($error) ?></div>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
+
 
                         <div class="mb-3">
                             <label class="form-label required-label" for="message">message</label>

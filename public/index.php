@@ -7,15 +7,16 @@ use App\core\Session;
 use App\core\Database;
 use App\controllers\AuthController;
 use App\controllers\ContactController;
+use App\controllers\ProfileController;
 
 Session::start();
 $user = Session::get('user');
 
 $page = $_GET['page'] ?? 'home';
-$protectedPages = ['booking', 'history'];
+$protectedPages = ['booking', 'history', 'profile', 'upload_photo', 'additional_info', 'edit_profile'];
 
 if (in_array($page, $protectedPages) && !Session::has('user')) {
-    Session::set('success', 'You must login first!');
+    Session::set('info', 'You must login first!');
     header("Location: ?page=login");
     exit;
 }
@@ -24,15 +25,19 @@ $db = Database::getInstance($config)->getConnection();
 
 
 $pageTitle = match ($page) {
-    'home' => 'home page',
-    'doctors' => 'doctors page',
-    'majors' => 'majors page',
-    'booking' => 'booking form',
-    'contact' => 'contact us',
-    'history' => 'history of bookings',
-    'login' => 'login',
+    'home'     => 'home page',
+    'doctors'  => 'doctors page',
+    'majors'   => 'majors page',
+    'booking'  => 'booking form',
+    'contact'  => 'contact us',
+    'history'  => 'history of bookings',
+    'login'    => 'login',
     'register' => 'register',
-    default => '404-Not Found'
+    'profile'  => 'profile',
+    'upload_photo' => 'upload photo',
+    'additional_info' => 'additional information',
+    'edit_profile' => 'edit profile',	
+    default    => '404-Not Found'
 };
 
 include_once '../views/layouts/header.php';
@@ -62,11 +67,49 @@ switch ($page) {
         $controller->register();
         break;
 
+
     case 'logout':
        $controller = new AuthController($db);
        $controller->logout();
        break;
 
+    case 'profile':
+        require '../views/users/profile.php';
+        break;
+
+    case 'upload_photo':
+        require '../views/users/upload_photo.php';
+        break;
+
+    case 'upload_photo_controller':
+        $controller = new ProfileController($db);
+        $controller->upload_photo();
+        break;
+
+    case 'delete_photo':
+        $controller = new ProfileController($db);
+        $controller->delete_photo();
+        break;
+
+    case 'additional_info':
+        require '../views/users/additional_info.php';
+        break;
+    
+    case 'additional_info_controller':
+        $controller = new ProfileController($db);
+        $controller->additionalInfo();
+        break;
+
+    case 'edit_profile':
+        require '../views/users/edit_profile.php';
+        break;
+
+    case 'edit_profile_controller':
+        $controller = new ProfileController($db);
+        $controller->editProfile();
+        break;
+    
+    
     case 'doctors':
         require '../views/doctors/doctors.php';
         break;
