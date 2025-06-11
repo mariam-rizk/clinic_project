@@ -8,6 +8,8 @@ use App\core\Database;
 use App\controllers\AuthController;
 use App\controllers\ContactController;
 use App\controllers\ProfileController;
+// use App\models\Doctor;
+// use App\models\Major;
 
 Session::start();
 $user = Session::get('user');
@@ -60,8 +62,15 @@ switch ($page) {
         require '../views/auth/register.php';
         break;
 
+    case 'majors':
+        require "../views/majors/majors.php";
+        break;
 
+    case 'doctors':
+        require "../views/doctors/home.php";
+        break;    
 
+        
     case 'register_controller':
         $controller = new AuthController($db);
         $controller->register();
@@ -110,13 +119,13 @@ switch ($page) {
         break;
     
     
-    case 'doctors':
-        require '../views/doctors/doctors.php';
-        break;
+    // case 'doctors':
+    //     require '../views/doctors/doctors.php';
+    //     break;
 
-    case 'majors':
-        require '../views/majors/majors.php';
-        break;
+    // case 'majors':
+    //     require '../views/majors/majors.php';
+    //     break;
 
     case 'booking':
         require '../views/bookings/booking_form.php';
