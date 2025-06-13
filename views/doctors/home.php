@@ -30,10 +30,11 @@
             <div class="card-body d-flex flex-column gap-1 justify-content-center">
                 <h4 class="card-title fw-bold text-center"><?= $doctor->getName();?></h4>
                 <h6 class="card-title fw-bold text-center"><?= $doctor->getMajorId($db);?></h6>
-                <form action="index.php?page=booking" method="POST">
+                <form action="index.php?page=booking&id=<?php echo $doctor->getId(); ?>" method="POST">
                     <input type="hidden" name="id" value="<?= $doctor->getId();?>">
                     <button type="submit" class="btn btn-outline-primary card-button m-4">Book an
                         appointment </button>
+                        
                 </form>
                 <!-- <a href="index.php?page=booking"  class="btn btn-outline-primary card-button">Book an appointment</a> -->
             </div>
