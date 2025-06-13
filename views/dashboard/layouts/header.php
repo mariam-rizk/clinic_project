@@ -14,8 +14,16 @@
     <link rel="stylesheet" href="dashboard_assets/css/custom.css">
   </head>
   <body class="hold-transition sidebar-mini">
-    <div class="wrapper">
+   <div class="wrapper">
+
 <?php
+require_once dirname(__DIR__, 3) . '/App/core/messages.php';
 require_once 'nav.php';
 require_once 'sidebar.php';
-?>
+
+
+
+
+
+
+

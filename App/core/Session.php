@@ -5,6 +5,7 @@ namespace App\core;
 class Session{
 
     public static function start(){
+        session_name('clinic_session');
         session_start();
     }
 

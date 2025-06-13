@@ -13,8 +13,8 @@
                     <div class="card-body d-flex flex-column gap-1 justify-content-center">
                         <h4 class="card-title fw-bold text-center">Doctor Name</h4>
                         <h6 class="card-title fw-bold text-center">Major</h6>
-                        <a href="?page=booking" class="btn btn-outline-primary card-button">Book an
-                            appointment</a>
+                        <a href="?page=booking&id=<?php echo $doctor->getId(); ?>" 
+                           class="btn btn-outline-primary card-button">Book an appointment</a>
                     </div>
                 </div>
                 <div class="card p-2" style="width: 18rem;">

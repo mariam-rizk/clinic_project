@@ -10,12 +10,11 @@ use PDO;
 class AuthController
 {
     protected PDO $db;
-   
+
     public function __construct(PDO $db)
     {
         $this->db = $db;
     }
-  
 
     public function register()
     {
@@ -39,85 +38,84 @@ class AuthController
             exit;
         }
 
-     
-        $user = new User($this->db);
+        $userModel = new User($this->db);
 
-        if ($user->findByEmail($data['email'])) {
+        if ($userModel->findByEmail($data['email'])) {
             Session::set('errors', ['email' => ['Email is already registered.']]);
             Session::set('old', $data);
             header('Location: ?page=register');
             exit;
         }
 
-        $user->create([
-            'name' => $data['name'],
-            'phone' => $data['phone'],
-            'email' => $data['email'],
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'gender' => $data['gender'],
-            'dateofbirth' => $data['dateofbirth']
-        ]);
+        $user = new User($this->db);
+        $user->setName($data['name']);
+        $user->setEmail($data['email']);
+        $user->setPhone($data['phone']);
+        $user->setPassword(password_hash($data['password'], PASSWORD_DEFAULT));
+        $user->setGender($data['gender']);
+        $user->setDateOfBirth($data['dateofbirth']);
+
+        $userModel->create($user);
 
         Session::set('success', 'Account created successfully.');
         header('Location: ?page=login');
         exit;
     }
 
-
     public function login()
     {
         $data = $_POST;
-    
+
         $validator = new Validation();
         $rules = [
             'email' => ['required', 'email'],
             'password' => ['required']
         ];
-    
+
         if (!$validator->validate($data, $rules)) {
             Session::set('errors', $validator->getErrors());
             Session::set('old', $data);
             header('Location: ?page=login');
             exit;
         }
-    
+
         $userModel = new User($this->db);
         $user = $userModel->findByEmail($data['email']);
-    
-        if (!$user || !password_verify($data['password'], $user['password'])) {
+
+        if (!$user || !password_verify($data['password'], $user->getPassword())) {
             Session::set('errors', ['Invalid email or password.']);
             Session::set('old', $data);
             header('Location: ?page=login');
             exit;
         }
-    
+
+        if ($user->getStatus() !== 'active') {
+            Session::set('errors', ['Your account have been banned.']);
+            Session::set('old', $data);
+            header('Location: ?page=login');
+            exit;
+        }
+
+
         Session::set('user', [
-            'id' => $user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'role' => $user['role']
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'email' => $user->getEmail(),
+            'role' => $user->getRole()
         ]);
 
         header('Location: ?page=home');
         exit;
     }
 
-    
     public function logout()
     {
         Session::remove('user');
-    
         Session::set('success', 'Logged out successfully.');
-
         header('Location: ?page=login');
         exit;
     }
 
-
-    
-        
-    
-    
 }
-    
+
     

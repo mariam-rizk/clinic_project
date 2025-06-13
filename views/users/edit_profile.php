@@ -1,78 +1,106 @@
 <?php
-use App\core\Session;
 use App\models\User;
+use App\core\Session;
 
-$userId = Session::get('user')['id'];
+$userSession = Session::get('user');
+if (!$userSession) {
+    Session::set('errors', 'Unauthorized access.');
+    header('Location: ?page=login');
+    exit;
+}
+
 $userModel = new User($db);
-$user = $userModel->getById($userId);
-
-
-
+$user = $userModel->getById($userSession['id']);
 ?>
+
+
 
 <div class="container py-5">
     <div class="card shadow-sm p-4">
         <h2 class="text-center mb-4">Edit Your Profile</h2>
 
-        <form action="?page=edit_profile_controller" method="post" class="needs-validation" novalidate>
+        <form action="?page=edit_profile_controller" method="post" class="form" novalidate>
+
+            
             <div class="mb-3">
-                <label for="name" class="form-label">Name:</label>
-                <input type="text" name="name" id="name" class="form-control <?= isset($errors['name']) ? 'is-invalid' : '' ?>"
-                       value="<?= htmlspecialchars($old['name'] ?? $user['name'] ?? '') ?>" required>
-                <?php if (!empty($errors['name'])): ?>
-                    <?php foreach ($errors['name'] as $err): ?>
-                        <div class="invalid-feedback"><?= htmlspecialchars($err) ?></div>
+                <label class="form-label required-label" for="name">Name</label>
+                <input type="text" name="name" id="name"
+                       class="form-control <?= isset($errors['name']) ? 'is-invalid' : '' ?>"
+                       value="<?= htmlspecialchars($old['name'] ?? $user?->getName() ?? '') ?>"required>
+                <?php if (isset($errors['name'])): ?>
+                    <?php foreach ((array)$errors['name'] as $error): ?>
+                        <div class="invalid-feedback d-block" style="color:red;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
 
+
+           
             <div class="mb-3">
-                <label for="email" class="form-label">Email:</label>
-                <input type="email" name="email" id="email" class="form-control <?= isset($errors['email']) ? 'is-invalid' : '' ?>"
-                       value="<?= htmlspecialchars($old['email'] ?? $user['email'] ?? '') ?>" required>
-                <?php if (!empty($errors['email'])): ?>
-                    <?php foreach ($errors['email'] as $err): ?>
-                        <div class="invalid-feedback"><?= htmlspecialchars($err) ?></div>
+                <label class="form-label required-label" for="email">Email</label>
+                <input type="email" name="email" id="email"
+                       class="form-control <?= isset($errors['email']) ? 'is-invalid' : '' ?>"
+                       value="<?= htmlspecialchars($old['email'] ?? $user?->getEmail() ?? '') ?>" required>
+                <?php if (isset($errors['email'])): ?>
+                    <?php foreach ((array)$errors['email'] as $error): ?>
+                        <div class="invalid-feedback d-block" style="color:red;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
 
+           
             <div class="mb-3">
-                <label for="phone" class="form-label">Phone:</label>
-                <input type="text" name="phone" id="phone" class="form-control <?= isset($errors['phone']) ? 'is-invalid' : '' ?>"
-                       value="<?= htmlspecialchars($old['phone'] ?? $user['phone'] ?? '') ?>">
-                <?php if (!empty($errors['phone'])): ?>
-                    <?php foreach ($errors['phone'] as $err): ?>
-                        <div class="invalid-feedback"><?= htmlspecialchars($err) ?></div>
+                <label class="form-label" for="phone">Phone</label>
+                <input type="text" name="phone" id="phone"
+                       class="form-control <?= isset($errors['phone']) ? 'is-invalid' : '' ?>"
+                       value="<?= htmlspecialchars($old['phone'] ?? $user?->getPhone() ?? '') ?>">
+                <?php if (isset($errors['phone'])): ?>
+                    <?php foreach ((array)$errors['phone'] as $error): ?>
+                        <div class="invalid-feedback d-block" style="color:red;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
 
+            
             <div class="mb-3">
-                <label for="gender" class="form-label">Gender:</label>
-                <select name="gender" id="gender" class="form-select <?= isset($errors['gender']) ? 'is-invalid' : '' ?>">
+                <label class="form-label required-label" for="gender">Gender</label>
+                <select name="gender" id="gender"
+                        class="form-select <?= isset($errors['gender']) ? 'is-invalid' : '' ?>" required>
                     <option value="">Select Gender</option>
-                    <option value="male" <?= ((isset($old['gender']) ? $old['gender'] : $user['gender']) === 'male') ? 'selected' : '' ?>>Male</option>
-                    <option value="female" <?= ((isset($old['gender']) ? $old['gender'] : $user['gender']) === 'female') ? 'selected' : '' ?>>Female</option>
+                    <option value="male" <?= ((isset($old['gender']) ? $old['gender'] : $user?->getGender()) === 'male') ? 'selected' : '' ?>>Male</option>
+                    <option value="female" <?= ((isset($old['gender']) ? $old['gender'] : $user?->getGender()) === 'female') ? 'selected' : '' ?>>Female</option>
                 </select>
-                <?php if (!empty($errors['gender'])): ?>
-                    <?php foreach ($errors['gender'] as $err): ?>
-                        <div class="invalid-feedback"><?= htmlspecialchars($err) ?></div>
+                <?php if (isset($errors['gender'])): ?>
+                    <?php foreach ((array)$errors['gender'] as $error): ?>
+                        <div class="invalid-feedback d-block" style="color:red;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
 
+          
             <div class="mb-3">
-                <label for="date_of_birth" class="form-label">Date of Birth:</label>
-                <input type="date" name="date_of_birth" id="date_of_birth" class="form-control <?= isset($errors['date_of_birth']) ? 'is-invalid' : '' ?>"
-                       value="<?= htmlspecialchars($old['date_of_birth'] ?? $user['date_of_birth'] ?? '') ?>">
-                <?php if (!empty($errors['date_of_birth'])): ?>
-                    <?php foreach ($errors['date_of_birth'] as $err): ?>
-                        <div class="invalid-feedback"><?= htmlspecialchars($err) ?></div>
+                <label class="form-label required-label" for="date_of_birth">Date of Birth</label>
+                <input type="date" name="date_of_birth" id="date_of_birth"
+                       class="form-control <?= isset($errors['date_of_birth']) ? 'is-invalid' : '' ?>"
+                       value="<?= htmlspecialchars($old['date_of_birth'] ?? $user?->getDateOfBirth() ?? '') ?>" required>
+                <?php if (isset($errors['date_of_birth'])): ?>
+                    <?php foreach ((array)$errors['date_of_birth'] as $error): ?>
+                        <div class="invalid-feedback d-block" style="color:red;">
+                            <?= htmlspecialchars($error) ?>
+                        </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
 
+           
             <button type="submit" class="btn btn-primary w-100">Save Changes</button>
         </form>
 

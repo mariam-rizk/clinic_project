@@ -1,52 +1,58 @@
 <?php
-use App\core\Session;
-use App\models\AdditionalInformation;
 
-$user = Session::get('user');
-if (!$user || !isset($user['id'])) {
+use App\models\User;
+use App\models\AdditionalInformation;
+use App\core\Session;
+
+$userSession = Session::get('user');
+if (!$userSession) {
+    Session::set('errors', 'Unauthorized access.');
     header('Location: ?page=login');
     exit;
 }
 
-$userId = $user['id'];
+$userModel = new User($db);
+$user = $userModel->getById($userSession['id']);
 
-$infoModel = new AdditionalInformation($db);
-$currentImage = $infoModel->getProfilePicture($userId);
+$additionalInfo = new AdditionalInformation($db);
+$additionalInfo->getByUserId($userSession['id']);
+
+
+$imagePath = 'uploads/profile_pictures/';
+$defaultIcon = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+$image = null;
+if (isset($additionalInfo) && $additionalInfo instanceof \App\models\AdditionalInformation) {
+    $image = $additionalInfo->getImage();
+}
+
+if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
+    $src = $imagePath . htmlspecialchars($image);
+} else {
+    $src = $defaultIcon;
+}
 ?>
 
-<div class="container py-5">
-    <div class="card shadow-sm p-4">
-        <h2 class="text-center mb-4">Update Profile Picture</h2>
 
-        <?php if ($msg = Session::get('success')): ?>
-            <div class="alert alert-success"><?= htmlspecialchars($msg) ?></div>
-            <?php Session::remove('success'); ?>
-        <?php endif; ?>
 
-        <?php if ($msg = Session::get('error')): ?>
-            <div class="alert alert-danger"><?= htmlspecialchars($msg) ?></div>
-            <?php Session::remove('error'); ?>
-        <?php endif; ?>
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Upload Profile Photo</h2>
 
-        <div class="text-center mb-4">
-            <?php if ($currentImage): ?>
-                <img src="uploads/profile_pictures/<?= htmlspecialchars($currentImage) ?>" alt="Profile Picture"
-                     class="rounded-circle border shadow-sm" style="width:150px;height:150px;object-fit:cover;">
-                <form action="?page=delete_photo" method="post" style="margin-top: 10px;">
-                    <button type="submit" onclick="return confirm('Are you sure you want to delete the photo?');"
-                            class="btn btn-danger btn-sm">Delete Photo</button>
-                </form>
-            <?php else: ?>
-                <p class="text-muted">No profile picture uploaded yet.</p>
-            <?php endif; ?>
+
+    <div class="text-center mb-4">
+        <img src="<?= $src ?>" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Photo">
+    </div>
+
+    <form method="post" enctype="multipart/form-data" action="?page=upload_photo_controller" class="w-50 mx-auto" novalidate>
+        <div class="mb-3">
+            <label for="photo" class="form-label">Choose Image</label>
+            <input class="form-control" type="file" id="photo" name="photo" required>
         </div>
 
-        <form action="?page=upload_photo_controller" method="post" enctype="multipart/form-data" class="text-center">
-            <div class="mb-3">
-                <label for="profile_image" class="form-label">Choose a new image:</label>
-                <input type="file" name="profile_image" id="profile_image" accept="image/*" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Upload Photo</button>
-        </form>
-    </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-success">Upload</button>
+            <a href="?page=profile" class="btn btn-secondary">Back to Profile</a>
+        </div>
+    </form>
 </div>
+

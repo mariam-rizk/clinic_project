@@ -8,6 +8,8 @@ use App\core\Database;
 use App\controllers\AuthController;
 use App\controllers\ContactController;
 use App\controllers\ProfileController;
+use App\controllers\BookingController;
+use App\controllers\HistoryController;
 // use App\models\Doctor;
 // use App\models\Major;
 
@@ -54,8 +56,7 @@ switch ($page) {
         break;
 
     case 'login_controller':
-        $controller = new AuthController($db);
-        $controller->login();
+        (new AuthController($db))->login();
         break;
   
     case 'register':
@@ -72,16 +73,15 @@ switch ($page) {
 
         
     case 'register_controller':
-        $controller = new AuthController($db);
-        $controller->register();
+        (new AuthController($db))->register();
         break;
 
 
     case 'logout':
-       $controller = new AuthController($db);
-       $controller->logout();
-       break;
-
+        (new AuthController($db))->logout();
+        break;
+      
+    
     case 'profile':
         require '../views/users/profile.php';
         break;
@@ -90,59 +90,53 @@ switch ($page) {
         require '../views/users/upload_photo.php';
         break;
 
-    case 'upload_photo_controller':
-        $controller = new ProfileController($db);
-        $controller->upload_photo();
-        break;
-
-    case 'delete_photo':
-        $controller = new ProfileController($db);
-        $controller->delete_photo();
+    case 'edit_profile':
+        require '../views/users/edit_profile.php';
         break;
 
     case 'additional_info':
         require '../views/users/additional_info.php';
         break;
+
     
-    case 'additional_info_controller':
-        $controller = new ProfileController($db);
-        $controller->additionalInfo();
+    case 'upload_photo_controller':
+        (new ProfileController($db))->upload_photo();
         break;
 
-    case 'edit_profile':
-        require '../views/users/edit_profile.php';
+    case 'delete_photo':
+        (new ProfileController($db))->delete_photo();
         break;
 
     case 'edit_profile_controller':
-        $controller = new ProfileController($db);
-        $controller->editProfile();
+        (new ProfileController($db))->edit_profile();
+        break;
+
+    case 'additional_info_controller':
+        (new ProfileController($db))->save_additional_info();
         break;
     
-    
-    // case 'doctors':
-    //     require '../views/doctors/doctors.php';
-    //     break;
-
-    // case 'majors':
-    //     require '../views/majors/majors.php';
-    //     break;
-
     case 'booking':
-        require '../views/bookings/booking_form.php';
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            Session::set('error', 'No doctor ID provided');
+            header("Location: ?page=doctors");
+            exit;
+        }
+        $controller = new BookingController($db); 
+        $controller->create($id);
         break;
 
     case 'history':
-        require '../views/bookings/history.php';
-        break;
+    $controller = new HistoryController($db);
+    $controller->index();
+    break;
 
     case 'contact':
         require '../views/contact_us/contact_form.php';
         break;
     
     case 'contact_controller':
-        $controller = new ContactController($db);
-        $controller->submitContactForm();
-        break;
+        (new ContactController($db))->submitContactForm();
 
 
 
