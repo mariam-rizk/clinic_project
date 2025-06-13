@@ -112,6 +112,8 @@ class AuthController
         header('Location: ?page=login');
         exit;
     }
+
+
     
         
     
