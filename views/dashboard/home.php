@@ -1,4 +1,9 @@
+<?php
+use App\models\User;
 
+$userModel = new User($db);
+$userCount = $userModel->countUsers();
+?>
 			
 			<!-- Content Wrapper. Contains page content -->
 			<div class="content-wrapper">
@@ -24,13 +29,13 @@
 							<div class="col-lg-4 col-6">							
 								<div class="small-box card">
 									<div class="inner">
-										<h3>150</h3>
-										<p>Total Orders</p>
+                                    <h3><?= $userCount ?></h3>
+                                    <p>Total Users</p>
 									</div>
 									<div class="icon">
 										<i class="ion ion-bag"></i>
 									</div>
-									<a href="#" class="small-box-footer text-dark">More info <i class="fas fa-arrow-circle-right"></i></a>
+									<a href="?page=manage_users" class="small-box-footer text-dark">More info <i class="fas fa-arrow-circle-right"></i></a>
 								</div>
 							</div>
 							

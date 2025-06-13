@@ -38,6 +38,9 @@ class Doctor{
     public function getEmail(){
         return $this->email;
     }
+    public function getPassword(){
+        return $this->password;
+    }
     public function getPhone(){
         return $this->phone;
     }
@@ -104,6 +107,31 @@ class Doctor{
        
        return $doctor;
     }
+
+
+    public static function findByEmail(PDO $pdo, string $email): ?Doctor
+    {
+        $stmt = $pdo->prepare("SELECT * FROM doctors WHERE email = :email LIMIT 1");
+        $stmt->execute(['email' => $email]);
+        $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if ($doctor) {
+            return new Doctor(
+                $doctor['id'],
+                $doctor['name'],
+                $doctor['email'],
+                $doctor['password'],
+                $doctor['phone'],
+                $doctor['gender'],
+                $doctor['image'],
+                $doctor['major_id'],
+                $doctor['bio']
+            );
+        }
+    
+        return null;
+    }
+
 
    
 

@@ -1,188 +1,186 @@
 <?php
+
 namespace App\controllers;
 
-use PDO;
 use App\core\Session;
 use App\core\Validation;
 use App\models\User;
 use App\models\AdditionalInformation;
-
+use PDO;
 
 class ProfileController
 {
-    protected PDO $db;
+    private PDO $db;
+    private User $userModel;
 
     public function __construct(PDO $db)
     {
         $this->db = $db;
+        $this->userModel = new User($db);
+    }
+    public function edit_profile()
+    {
+        $userId = Session::get('user')['id'] ?? null;
+        if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Session::set('errors', 'Unauthorized action.');
+            header('Location: ?page=edit_profile');
+            exit;
+        }
+
+        $data = [
+            'name' => trim($_POST['name'] ?? ''),
+            'email' => trim($_POST['email'] ?? ''),
+            'phone' => trim($_POST['phone'] ?? ''),
+            'gender' => $_POST['gender'] ?? '',
+            'date_of_birth' => $_POST['date_of_birth'] ?? ''
+        ];
+
+        $rules = [
+            'name' => ['required', 'string', 'min:3'],
+            'email' => ['required', 'email'],
+            'phone' => ['required', 'phone'],
+            'gender' => ['required', 'in:male,female'],
+            'date_of_birth' => ['required', 'date']
+        ];
+
+        $validator = new Validation();
+
+        if (!$validator->validate($data, $rules)) {
+            Session::set('errors', $validator->getErrors());
+            Session::set('old', $data);
+            header('Location: ?page=edit_profile');
+            exit;
+            }
+
+        $updated = $this->userModel->updateUserInfo($userId, $data);
+
+        if ($updated) {
+            Session::set('success', 'Profile updated successfully.');
+        } else {
+            Session::set('info', 'No changes were made or update failed.');
+        }
+
+        header('Location: ?page=profile');
+        exit;
     }
 
     public function upload_photo()
     {
         $userId = Session::get('user')['id'] ?? null;
         if (!$userId) {
-            header("Location: ?page=login");
+            Session::set('errors', 'Unauthorized action.');
+            header("Location: ?page=upload_photo");
             exit;
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] == 0) {
-            $file = $_FILES['profile_image']; 
-
-            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-
-            if (in_array(strtolower($ext), $allowed)) {
-                $newName = uniqid('profile_', true) . '.' . $ext;
-                $uploadDir = __DIR__ . '/../../public/uploads/profile_pictures/';
-                $uploadPath = $uploadDir . $newName;
-
-              
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-
-                if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-                    $infoModel = new AdditionalInformation($this->db);
-
-                 
-                    $oldImage = $infoModel->getProfilePicture($userId);
-                    if ($oldImage && file_exists($uploadDir . $oldImage)) {
-                        unlink($uploadDir . $oldImage);
-                    }
-
-                    $infoModel->updateProfilePicture($userId, $newName);
-
-                    Session::set('success', 'profile picture uploaded successfully.');
-                } else {
-                    Session::set('error', 'failed to upload the image. Please try again.');
-                }
-            } else {
-                Session::set('error', 'please select a valid image file (jpg, jpeg, png, gif) to upload.');
-            }
-        } else {
-            Session::set('error', 'failed to upload the image. Please check the file and try again.');
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            Session::set('errors', 'Please select a valid photo to upload.');
+            header("Location: ?page=upload_photo");
+            exit;
         }
 
-        header('Location: ?page=profile');
+        $fileName = time() . '_' . basename($_FILES['photo']['name']);
+        $uploadDir = __DIR__ . '../../../public/uploads/profile_pictures/';
+        $destination = $uploadDir . $fileName;
+
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $destination)) {
+            Session::set('errors', 'Upload failed.');
+            header("Location: ?page=upload_photo");
+            exit;
+        }
+
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($userId);
+
+        $oldImage = $additionalInfo->getImage();
+        if ($oldImage && file_exists($uploadDir . $oldImage)) {
+            unlink($uploadDir . $oldImage);
+        }
+
+        $additionalInfo->setUserId($userId);
+        $additionalInfo->setImage($fileName);
+        $additionalInfo->save();
+
+        Session::set('success', 'Photo uploaded successfully!');
+        header("Location: ?page=profile");
         exit;
     }
 
     public function delete_photo()
     {
         $userId = Session::get('user')['id'] ?? null;
-        if (!$userId) {
-            header("Location: ?page=login");
-            exit;
+
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($userId);
+
+        $image = $additionalInfo->getImage();
+        $uploadPath = __DIR__ . "../../../public/uploads/profile_pictures/";
+
+        if ($image && file_exists($uploadPath . $image)) {
+            unlink($uploadPath . $image);
         }
 
-        $infoModel = new AdditionalInformation($this->db);
-        $uploadDir = __DIR__ . '/../../public/uploads/profile_pictures/';
+        $additionalInfo->setImage(null);
+        $additionalInfo->save();
 
-        $oldImage = $infoModel->getProfilePicture($userId);
-        if ($oldImage && file_exists($uploadDir . $oldImage)) {
-            unlink($uploadDir . $oldImage);
-        }
-
-        $infoModel->updateProfilePicture($userId, null);
-
-        Session::set('success', 'profile picture deleted successfully.');
-        header('Location: ?page=profile');
+        Session::set('success', 'Photo deleted successfully!');
+        header("Location: ?page=profile");
         exit;
     }
-
-    public function additionalInfo()
+    public function save_additional_info()
     {
-        $userId = Session::get('user')['id'];
-        $address = trim($_POST['address'] ?? '');
+        $userId = Session::get('user')['id'] ?? null;
     
-       
-        $validator = new Validation();
-        $data = ['address' => $address];
-        $rules = ['address' => ['required', 'string', 'min:5']];
-    
-        if (!$validator->validate($data, $rules)) {
-            Session::set('errors', $validator->getErrors());
+        if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Session::set('errors', 'Unauthorized action.');
             header('Location: ?page=additional_info');
             exit;
         }
-
-        $infoModel = new AdditionalInformation($this->db);
-        if ($infoModel->updateAddress($userId, $address)) {
-            Session::set('success', 'Address saved successfully.');
-        } else {
-            Session::set('errors', ['address' => ['Failed to save address. Please try again.']]);
-        }
     
-        header('Location: ?page=profile');
-        exit;
-    }
-
-
-    public function editProfile()
-    {
-        $userId = Session::get('user')['id'] ?? null;
-        if (!$userId) {
-            header("Location: ?page=login");
-            exit;
-        }
+        $address = trim($_POST['address'] ?? '');
     
         $validator = new Validation();
-        $data = [
-            'name' => trim($_POST['name'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-            'phone' => trim($_POST['phone'] ?? ''),
-            'gender' => $_POST['gender'] ?? '',
-            'date_of_birth' => $_POST['date_of_birth'] ?? '',
-        ];
     
         $rules = [
-            'name' => ['required', 'string', 'min:3'],
-            'email' => ['required', 'email'],
-            'phone' => ['required', 'phone'],
-            'gender' => ['required', 'in:male,female'],
-            'date_of_birth' => ['required', 'date'],
+            'address' => ['required', 'string', 'min:5'],
         ];
     
-        if (!$validator->validate($data, $rules)) {
+        if (!$validator->validate(['address' => $address], $rules)) {
             Session::set('errors', $validator->getErrors());
-            Session::set('old', $data);
-            header('Location: ?page=edit_profile');
+            Session::set('old', ['address' => $address]);
+            header('Location: ?page=additional_info');
             exit;
         }
     
-        $userModel = new User($this->db);
-        $oldUser = $userModel->getById($userId);
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($userId);
     
-       
-        $dataChanged = false;
-        foreach ($data as $key => $value) {
-            if ($oldUser[$key] != $value) {
-                $dataChanged = true;
-                break;
-            }
+        $oldAddress = $additionalInfo->getAddress();
+    
+    
+        if ($oldAddress === $address) {
+            Session::set('info', 'No changes were made.');
+            header('Location: ?page=profile');
+            exit;
         }
     
-        if ($dataChanged) {
-           
-            $userModel->updateUserInfo($userId, $data);
-            $updatedUser = $userModel->getById($userId);
-            Session::set('user', $updatedUser);
-            Session::set('success', 'Profile updated successfully.');
+        $additionalInfo->setUserId($userId);
+        $additionalInfo->setAddress($address);
+    
+        if ($additionalInfo->save()) {
+            Session::set('success', 'Address saved successfully.');
         } else {
-          
-            Session::set('info', 'No changes were made.');
-                header('Location: ?page=edit_profile');
-                exit;
+            Session::set('errors', 'Failed to save address.');
         }
     
         header('Location: ?page=profile');
         exit;
     }
-    
-    
-    
+
+
 
 }
-
-
-    

@@ -6,20 +6,75 @@ use App\core\Session;
 use App\core\Database;
 use App\controllers\dashboardControllers\MajorsController;
 use App\controllers\dashboardControllers\BookingsController;
+use App\controllers\dashboardControllers\AuthController;
+use App\controllers\dashboardControllers\UserController;
 
-session_start();
+Session::start(); 
 
 $page = $_GET['page'] ?? 'dashboard';
 
-$publicPages = ['admin_login', 'login_controller', 'logout'];
+$publicPages = ['admin_login', 'login_controller', 'admin_logout'];
+$allowedPagesForDoctor = ['dashboard', 'manage_bookings', 'manage_contacts'];
+
+if (!in_array($page, $publicPages)) {
+    $user = Session::get('user');
+
+    if (!$user) {
+        Session::set('info', 'Login required!');
+        header("Location: dashboard.php?page=admin_login");
+        exit;
+    }
+
+    $role = $user['role'] ?? '';
+
+    if ($role === 'doctor' && !in_array($page, $allowedPagesForDoctor)) {
+        Session::set('errors', ['Unauthorized access.']);
+        header("Location: dashboard.php?page=dashboard");
+        exit;
+    }
+
+    if (!in_array($role, ['admin', 'subadmin', 'doctor'])) {
+        Session::set('errors', ['Unauthorized role.']);
+        header("Location: dashboard.php?page=admin_login");
+        exit;
+    }
+}
 
 $db = Database::getInstance($config)->getConnection();
 
+switch ($page) {
+    case 'login_controller':
+        (new AuthController($db))->login();
+        exit;
+
+    case 'admin_logout':
+        (new AuthController($db))->logout();
+        exit;
+
+    case 'create_user_controller':
+        (new UserController($db))->createUser();
+        break;
+
+    case 'user_status':
+        (new UserController($db))->Status();
+        break;
+
+    case 'update_role':
+        (new UserController($db))->updateRole();
+        exit;
+
+    case 'delete_user':
+        (new UserController($db))->deleteUser((int)$_GET['id']);
+        exit;
+}
+
 $pageTitle = match ($page) {
     'dashboard'         => 'Admin Dashboard',
-    'manage_users'      => 'Manage Users',
-    'manage_bookings'   => 'Manage Bookings',
     'admin_login'       => 'Administrative Panel',
+    'manage_users'      => 'Manage Users',
+    'edit_user'         => 'Edit User',
+    'create_user'       => 'Create User',
+    'manage_bookings'   => 'Manage Bookings',
     'manage_majors'     => 'Manage Majors',
     'create_major'      => 'Create Specialization',
     'edit_major'        => 'Edit Specialization',
@@ -29,7 +84,6 @@ $pageTitle = match ($page) {
     default             => '404 - Page Not Found'
 };
 
-// تحميل header.php بس للصفحات اللي فعلاً بتعرض واجهة
 $noOutputPages = ['store_major', 'update_major', 'delete_major', 'update_booking', 'delete_booking'];
 if (!in_array($page, $publicPages) && !in_array($page, $noOutputPages)) {
     include_once '../views/dashboard/layouts/header.php';
@@ -46,6 +100,14 @@ switch ($page) {
 
     case 'manage_users':
         require '../views/dashboard/users/users.php';
+        break;
+
+    case 'edit_user':
+        require '../views/dashboard/users/edit_user.php';
+        break;
+
+    case 'create_user':
+        require '../views/dashboard/users/create_user.php';
         break;
 
     case 'manage_bookings':
