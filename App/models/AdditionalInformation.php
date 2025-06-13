@@ -17,8 +17,40 @@ class AdditionalInformation
         $this->db = $db;
     }
 
+
    
-    public function loadByUserId(int $userId): bool
+    public function getUserId(): ?int
+    {
+        return $this->user_id;
+    }
+
+    public function setUserId(int $user_id): void
+    {
+        $this->user_id = $user_id;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): void
+    {
+        $this->image = $image;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(string $address): void
+    {
+        $this->address = $address;
+    }
+
+
+        public function getByUserId(int $userId): bool
     {
         $stmt = $this->db->prepare("SELECT * FROM additional_information WHERE user_id = :user_id LIMIT 1");
         $stmt->execute([':user_id' => $userId]);
@@ -63,36 +95,5 @@ class AdditionalInformation
             ':image' => $this->image,
             ':address' => $this->address
         ]);
-    }
-
-   
-    public function getUserId(): ?int
-    {
-        return $this->user_id;
-    }
-
-    public function setUserId(int $user_id): void
-    {
-        $this->user_id = $user_id;
-    }
-
-    public function getImage(): ?string
-    {
-        return $this->image;
-    }
-
-    public function setImage(?string $image): void
-    {
-        $this->image = $image;
-    }
-
-    public function getAddress(): ?string
-    {
-        return $this->address;
-    }
-
-    public function setAddress(string $address): void
-    {
-        $this->address = $address;
     }
 }

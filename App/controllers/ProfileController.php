@@ -94,7 +94,7 @@ class ProfileController
         }
 
         $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->loadByUserId($userId);
+        $additionalInfo->getByUserId($userId);
 
         $oldImage = $additionalInfo->getImage();
         if ($oldImage && file_exists($uploadDir . $oldImage)) {
@@ -115,7 +115,7 @@ class ProfileController
         $userId = Session::get('user')['id'] ?? null;
 
         $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->loadByUserId($userId);
+        $additionalInfo->getByUserId($userId);
 
         $image = $additionalInfo->getImage();
         $uploadPath = __DIR__ . "../../../public/uploads/profile_pictures/";
@@ -131,54 +131,56 @@ class ProfileController
         header("Location: ?page=profile");
         exit;
     }
-public function save_additional_info()
-{
-    $userId = Session::get('user')['id'] ?? null;
-
-    if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
-        Session::set('errors', 'Unauthorized action.');
-        header('Location: ?page=additional_info');
-        exit;
-    }
-
-    $address = trim($_POST['address'] ?? '');
-
-    $validator = new Validation();
-
-    $rules = [
-        'address' => ['required', 'string', 'min:5'],
-    ];
-
-    if (!$validator->validate(['address' => $address], $rules)) {
-        Session::set('errors', $validator->getErrors());
-        Session::set('old', ['address' => $address]);
-        header('Location: ?page=additional_info');
-        exit;
-    }
-
-    $additionalInfo = new AdditionalInformation($this->db);
-    $additionalInfo->loadByUserId($userId);
-
-    $oldAddress = $additionalInfo->getAddress();
-
-
-    if ($oldAddress === $address) {
-        Session::set('info', 'No changes were made.');
+    public function save_additional_info()
+    {
+        $userId = Session::get('user')['id'] ?? null;
+    
+        if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Session::set('errors', 'Unauthorized action.');
+            header('Location: ?page=additional_info');
+            exit;
+        }
+    
+        $address = trim($_POST['address'] ?? '');
+    
+        $validator = new Validation();
+    
+        $rules = [
+            'address' => ['required', 'string', 'min:5'],
+        ];
+    
+        if (!$validator->validate(['address' => $address], $rules)) {
+            Session::set('errors', $validator->getErrors());
+            Session::set('old', ['address' => $address]);
+            header('Location: ?page=additional_info');
+            exit;
+        }
+    
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($userId);
+    
+        $oldAddress = $additionalInfo->getAddress();
+    
+    
+        if ($oldAddress === $address) {
+            Session::set('info', 'No changes were made.');
+            header('Location: ?page=profile');
+            exit;
+        }
+    
+        $additionalInfo->setUserId($userId);
+        $additionalInfo->setAddress($address);
+    
+        if ($additionalInfo->save()) {
+            Session::set('success', 'Address saved successfully.');
+        } else {
+            Session::set('errors', 'Failed to save address.');
+        }
+    
         header('Location: ?page=profile');
         exit;
     }
 
-    $additionalInfo->setUserId($userId);
-    $additionalInfo->setAddress($address);
 
-    if ($additionalInfo->save()) {
-        Session::set('success', 'Address saved successfully.');
-    } else {
-        Session::set('errors', 'Failed to save address.');
-    }
-
-    header('Location: ?page=profile');
-    exit;
-}
 
 }

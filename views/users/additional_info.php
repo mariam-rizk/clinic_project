@@ -14,10 +14,9 @@ $userModel = new User($db);
 $user = $userModel->getById($userSession['id']);
 
 $additionalInfo = new AdditionalInformation($db);
-$additionalInfo->loadByUserId($userSession['id']);
+$additionalInfo->getByUserId($userSession['id']);
 
 $info = $additionalInfo;
-
 ?>
 
 <div class="container py-5">
@@ -36,10 +35,8 @@ $info = $additionalInfo;
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
-
             <button type="submit" class="btn btn-primary w-100">Save Address</button>
         </form>
-
         <div class="mt-3 text-center">
             <a href="?page=profile" class="btn btn-secondary">Back to Profile</a>
         </div>

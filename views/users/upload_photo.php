@@ -15,7 +15,7 @@ $userModel = new User($db);
 $user = $userModel->getById($userSession['id']);
 
 $additionalInfo = new AdditionalInformation($db);
-$additionalInfo->loadByUserId($userSession['id']);
+$additionalInfo->getByUserId($userSession['id']);
 
 
 $imagePath = 'uploads/profile_pictures/';

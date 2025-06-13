@@ -1,5 +1,4 @@
 <?php
-
 use App\models\User;
 use App\models\AdditionalInformation;
 use App\core\Session;
@@ -18,11 +17,12 @@ $user = $userModel->getById($userSession['id']);
 
 
 $additionalInfoModel = new AdditionalInformation($db);
-$additionalInfoModel->loadByUserId($userSession['id']);
+$additionalInfoModel->getByUserId($userSession['id']);
 
 $imagePath = 'uploads/profile_pictures/';
 $image = $additionalInfoModel->getImage();
 $defaultIcon = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
 
 if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
     $src = $imagePath . htmlspecialchars($image);
@@ -33,16 +33,13 @@ if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
 
 <div class="container my-5">
     <h2 class="mb-4 text-center">Profile</h2>
-
     <div class="row">
         <div class="col-md-4 text-center">
             <img src="<?= $src ?>" class="img-fluid rounded-circle" alt="Profile Photo"
                  style="width: 200px; height: 200px; object-fit: cover;">
-
             <div class="mt-3">
                 <a href="?page=upload_photo" class="btn btn-success">Upload/Change Photo</a>
             </div>
-
             <?php if ($image): ?>
                 <form method="post" action="?page=delete_photo"
                       onsubmit="return confirm('Are you sure you want to delete your profile photo?')" class="mt-2">
@@ -80,7 +77,6 @@ if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
                     </tr>
                 <?php endif; ?>
             </table>
-
             <div class="mt-3">
                 <a href="?page=edit_profile" class="btn btn-outline-primary">Edit Profile</a>
                 <a href="?page=additional_info" class="btn btn-outline-secondary">Additional Info</a>

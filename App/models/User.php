@@ -13,7 +13,8 @@ class User
     private string $password;
     private string $gender;
     private string $dateOfBirth;
-    private string $role;
+    private string $role = 'user'; 
+    private string $status = 'active'; 
     private PDO $db;
 
     public function __construct(PDO $db)
@@ -47,22 +48,27 @@ class User
     public function getRole(): string { return $this->role; }
     public function setRole(string $role): void { $this->role = $role; }
 
+    public function getStatus(): string { return $this->status; }
+    public function setStatus(string $status): void { $this->status = $status; }
+
     
 
     public function create(User $user): bool
     {
         $stmt = $this->db->prepare("
-            INSERT INTO users (name, phone, email, password, gender, date_of_birth)
-            VALUES (:name, :phone, :email, :password, :gender, :dob)
+            INSERT INTO users (name, phone, email, password, gender, date_of_birth, role, status)
+            VALUES (:name, :phone, :email, :password, :gender, :dob, :role, :status)
         ");
-
+        
         return $stmt->execute([
             ':name' => $user->getName(),
             ':phone' => $user->getPhone(),
             ':email' => $user->getEmail(),
             ':password' => $user->getPassword(),
             ':gender' => $user->getGender(),
-            ':dob' => $user->getDateOfBirth()
+            ':dob' => $user->getDateOfBirth(),
+            ':role' => $user->getRole(),
+            ':status' => $user->getStatus(),
         ]);
     }
 
@@ -90,34 +96,22 @@ class User
 
     public function updateUserInfo(int $userId, array $data): bool
     {
-        $user = $this->getById($userId);
-        if (!$user) return false;
-
-        $unchanged = true;
+        $allowedFields = ['name', 'email', 'phone', 'gender', 'date_of_birth', 'role'];
+        $fields = [];
+        $params = [':id' => $userId];
+    
         foreach ($data as $key => $value) {
-            $getter = 'get' . ucfirst($key);
-            if (method_exists($user, $getter) && $user->$getter() != $value) {
-                $unchanged = false;
-                break;
+            if (in_array($key, $allowedFields)) {
+                $fields[] = "$key = :$key";
+                $params[":$key"] = $value;
             }
         }
-
-        if ($unchanged) return false;
-
-        $stmt = $this->db->prepare("
-            UPDATE users
-            SET name = :name, email = :email, phone = :phone, gender = :gender, date_of_birth = :date_of_birth
-            WHERE id = :id
-        ");
-
-        return $stmt->execute([
-            ':name' => $data['name'],
-            ':email' => $data['email'],
-            ':phone' => $data['phone'],
-            ':gender' => $data['gender'],
-            ':date_of_birth' => $data['date_of_birth'],
-            ':id' => $userId
-        ]);
+    
+        if (empty($fields)) return false;
+    
+        $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 
   
@@ -132,6 +126,64 @@ class User
         $user->setGender($row['gender']);
         $user->setDateOfBirth($row['date_of_birth']);
         $user->setRole($row['role']);
+        $user->setStatus($row['status']);
         return $user;
     }
+    
+    public function getAll(): array
+	{
+		$stmt = $this->db->prepare("SELECT * FROM users");
+		$stmt->execute();
+		return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+    public function updateStatus(int $id, string $status): bool
+    {
+        $stmt = $this->db->prepare("UPDATE users SET status = :status WHERE id = :id");
+        return $stmt->execute([
+            ':status' => $status,
+            ':id' => $id,
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM users WHERE id = :id");
+        return $stmt->execute([':id' => $id]);
+    }
+
+    public function search(string $keyword): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT * FROM users
+            WHERE name LIKE :keyword 
+            ORDER BY id DESC
+        ");
+        $stmt->execute([
+            ':keyword' => '%' . $keyword . '%',
+        ]);
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function pagination($limit, $offset): array
+    {
+        $limit = (int) $limit;
+        $offset = (int) $offset;
+    
+        $stmt = $this->db->query("SELECT * FROM users ORDER BY id DESC LIMIT $limit OFFSET $offset");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function paginationCount(): int
+    {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
+        return (int) $stmt->fetchColumn();
+    }
+
+
+
+
+    
 }

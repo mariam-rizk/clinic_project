@@ -89,6 +89,14 @@ class AuthController
             exit;
         }
 
+        if ($user->getStatus() !== 'active') {
+            Session::set('errors', ['Your account have been banned.']);
+            Session::set('old', $data);
+            header('Location: ?page=login');
+            exit;
+        }
+
+
         Session::set('user', [
             'id' => $user->getId(),
             'name' => $user->getName(),
