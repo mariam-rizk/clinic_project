@@ -1,22 +1,21 @@
 <?php
 use App\core\Session;
 
-// Fetch messages from the session
+
 $success = isset($_SESSION['success']) ? $_SESSION['success'] : null;
 $errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : [];
 
-// Clear messages from the session after fetching
+
 unset($_SESSION['success']);
 unset($_SESSION['errors']);
 
-// Fetch majors data and search term
 $majors = isset($_SESSION['majors_data']) && is_array($_SESSION['majors_data']) ? $_SESSION['majors_data'] : [];
 $search = isset($_SESSION['search']) ? htmlspecialchars($_SESSION['search']) : '';
 ?>
 
-<!-- Content Wrapper. Contains page content -->
+
 <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
+
     <section class="content-header">
         <div class="container-fluid my-2">
             <div class="row mb-2">
@@ -30,10 +29,10 @@ $search = isset($_SESSION['search']) ? htmlspecialchars($_SESSION['search']) : '
         </div>
     </section>
 
-    <!-- Main content -->
+
     <section class="content">
         <div class="container-fluid">
-            <!-- Display flashed messages -->
+
             <?php if ($success): ?>
                 <div class="alert alert-success text-center"><?= htmlspecialchars($success) ?></div>
             <?php endif; ?>
@@ -42,7 +41,7 @@ $search = isset($_SESSION['search']) ? htmlspecialchars($_SESSION['search']) : '
                     <div class="alert alert-danger text-center"><?= htmlspecialchars($error) ?></div>
                 <?php endforeach; ?>
             <?php endif; ?>
-            <!-- Table Section -->
+
             <div class="card">
                 <div class="card-header">
                     <div class="card-tools">

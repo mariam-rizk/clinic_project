@@ -26,7 +26,7 @@ class HistoryController
             exit;
         }
 
-        // Check for user existence
+
         $userModel = new User($this->db);
         $user = $userModel->getById($this->userId);
         error_log("User Data: " . print_r($user, true));
@@ -42,7 +42,7 @@ class HistoryController
             exit;
         }
 
-        // تعديل المسار ليشير لـ views/history.php
+
         require_once __DIR__ . '/../../views/bookings/history.php';
     }
 
@@ -77,7 +77,7 @@ class HistoryController
             exit;
         }
 
-        // تعديل المسار هنا كمان
+
         require_once __DIR__ . '/../../views/bookings/history.php';
     }
 }

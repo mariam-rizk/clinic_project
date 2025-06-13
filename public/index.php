@@ -136,7 +136,7 @@ switch ($page) {
             header("Location: ?page=doctors");
             exit;
         }
-        $controller = new BookingController($db); // عدلنا $bd لـ $db
+        $controller = new BookingController($db); 
         $controller->create($id);
         break;
 

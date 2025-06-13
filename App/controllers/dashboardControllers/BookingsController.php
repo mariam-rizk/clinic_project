@@ -153,7 +153,6 @@ class BookingsController
                 throw new \Exception("Invalid booking ID.");
             }
 
-            // Check if booking exists
             $query = "SELECT id FROM bookings WHERE id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -162,7 +161,6 @@ class BookingsController
                 throw new \Exception("Booking not found.");
             }
 
-            // Perform deletion
             $query = "DELETE FROM bookings WHERE id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);

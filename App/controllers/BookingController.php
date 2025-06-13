@@ -20,7 +20,7 @@ class BookingController
     public function create($doctorId)
     {
         if (!$this->userId) {
-            Session::set('error', 'Please login to create a booking');
+            Session::set('error', 'Please log in to create a booking');
             header("Location: ?page=login");
             exit;
         }
@@ -62,7 +62,7 @@ class BookingController
                 header("Location: ?page=doctors");
                 exit;
             }
-            // Fallback إذا الصورة null أو المسار غير صالح
+
             $doctor['image'] = $doctor['image'];
         } catch (\PDOException $e) {
             Session::set('error', 'Failed to fetch doctor: ' . $e->getMessage());
@@ -74,7 +74,6 @@ class BookingController
         $availableDays = $doctorSchedule->getAvailableDays();
         $doctor_id = $doctorId;
 
-        // اختيار يوم افتراضي (أول يوم متاح) وجلب الساعات المتاحة
         $defaultDay = !empty($availableDays) ? $availableDays[0] : '';
         $availableHours = [];
         if ($defaultDay) {
@@ -103,7 +102,7 @@ class BookingController
     public function confirm($bookingId)
     {
         if (!$this->userId) {
-            Session::set('error', 'Please login to confirm a booking');
+            Session::set('error', 'Please log in to confirm a booking');
             header("Location: ?page=login");
             exit;
         }
@@ -126,15 +125,15 @@ class BookingController
         $day = $_GET['day'] ?? '';
         if (empty($day) || !is_string($day)) {
             http_response_code(400);
-            echo json_encode(['error' => 'تنسيق اليوم غير صحيح']);
-            error_log("خطأ: اليوم فارغ أو غير صحيح: $day");
+            echo json_encode(['error' => 'Invalid day format']);
+            error_log("Error: Day is empty or invalid: $day");
             exit;
         }
 
         if (!is_numeric($doctorId) || $doctorId <= 0) {
             http_response_code(400);
-            echo json_encode(['error' => 'معرف الدكتور غير صحيح']);
-            error_log("خطأ: معرف الدكتور غير صحيح: $doctorId");
+            echo json_encode(['error' => 'Invalid doctor ID']);
+            error_log("Error: Invalid doctor ID: $doctorId");
             exit;
         }
 
@@ -145,16 +144,16 @@ class BookingController
             if (isset($hours['error'])) {
                 http_response_code(400);
                 echo json_encode(['error' => $hours['error']]);
-                error_log("خطأ في جلب الساعات: {$hours['error']}");
+                error_log("Error fetching hours: {$hours['error']}");
                 exit;
             }
             
             echo json_encode($hours);
-            error_log("الساعات المرجعة: " . json_encode($hours));
+            error_log("Returned hours: " . json_encode($hours));
         } catch (\Exception $e) {
             http_response_code(500);
-            echo json_encode(['error' => 'خطأ في السيرفر: ' . $e->getMessage()]);
-            error_log("خطأ في السيرفر: " . $e->getMessage());
+            echo json_encode(['error' => 'Server error: ' . $e->getMessage()]);
+            error_log("Server error: " . $e->getMessage());
         }
         exit;
     }

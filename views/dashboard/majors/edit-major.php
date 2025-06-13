@@ -1,21 +1,19 @@
 <?php
 use App\core\Session;
 
-// Fetch messages from the session
 $success = isset($_SESSION['success']) ? $_SESSION['success'] : null;
 $errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : [];
 
-// Clear messages from the session after fetching
+
 unset($_SESSION['success']);
 unset($_SESSION['errors']);
 
-// Fetch major data
+
 $major = isset($_SESSION['major_data']) ? $_SESSION['major_data'] : null;
 ?>
 
-<!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
+
     <section class="content-header">
         <div class="container-fluid my-2">
             <div class="row mb-2">
@@ -27,11 +25,11 @@ $major = isset($_SESSION['major_data']) ? $_SESSION['major_data'] : null;
                 </div>
             </div>
         </div>
-        <!-- /.container-fluid -->
+
     </section>
-    <!-- Main content -->
+
     <section class="content">
-        <!-- Default box -->
+
         <div class="container-fluid">
             <?php if ($success): ?>
                 <div class="alert alert-success text-center"><?= htmlspecialchars($success) ?></div>
@@ -70,8 +68,8 @@ $major = isset($_SESSION['major_data']) ? $_SESSION['major_data'] : null;
             <?php else: ?>
                 <div class="alert alert-danger">Major not found.</div>
             <?php endif; ?>
-            <!-- /.card -->
+
         </div>
     </section>
-    <!-- /.content -->
+
 </div>

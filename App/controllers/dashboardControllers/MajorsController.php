@@ -68,10 +68,7 @@ class MajorsController
         }
     }
 
-    public function create()
-    {
-        // Function to display the create major page
-    }
+
 
     public function store()
     {
@@ -168,7 +165,7 @@ class MajorsController
                 throw new \Exception("Invalid major ID.");
             }
 
-            // Check if major exists
+
             $query = "SELECT id FROM majors WHERE id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -177,7 +174,7 @@ class MajorsController
                 throw new \Exception("Major not found.");
             }
 
-            // Check if major has associated doctors
+
             $query = "SELECT COUNT(*) FROM doctors WHERE major_id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -188,7 +185,7 @@ class MajorsController
                 throw new \Exception("Cannot delete major because it is associated with doctors.");
             }
 
-            // Perform deletion
+
             $query = "DELETE FROM majors WHERE id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
