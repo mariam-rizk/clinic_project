@@ -183,7 +183,11 @@ class User
     }
 
 
-
+    public function countUsers(): int
+    {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
+        return (int) $stmt->fetchColumn();
+    }
 
     
 }
