@@ -6,6 +6,10 @@ use PDO;
 
 class AdditionalInformation
 {
+    private ?int $user_id = null;
+    private ?string $image = null;
+    private ?string $address = null;
+
     private PDO $db;
 
     public function __construct(PDO $db)
@@ -13,84 +17,83 @@ class AdditionalInformation
         $this->db = $db;
     }
 
-    public function getByUserId(int $userId): ?array
+
+   
+    public function getUserId(): ?int
     {
-        $stmt = $this->db->prepare("
-            SELECT * FROM additional_information WHERE user_id = :user_id LIMIT 1
-        ");
-        $stmt->execute([':user_id' => $userId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $this->user_id;
     }
 
-    public function getProfilePicture(int $userId): ?string
+    public function setUserId(int $user_id): void
     {
-        $stmt = $this->db->prepare("
-            SELECT image FROM additional_information WHERE user_id = :user_id
-        ");
-        $stmt->execute([':user_id' => $userId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $row ? $row['image'] : null;
+        $this->user_id = $user_id;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): void
+    {
+        $this->image = $image;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(string $address): void
+    {
+        $this->address = $address;
     }
 
 
-    public function updateProfilePicture(int $userId, ?string $pictureName): bool
+        public function getByUserId(int $userId): bool
     {
-        
+        $stmt = $this->db->prepare("SELECT * FROM additional_information WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            $this->user_id = $userId;
+            $this->image = $row['image'] ?? null;
+            $this->address = $row['address'] ?? null;
+            return true;
+        }
+
+        return false;
+    }
+
+
+    public function save(): bool
+    {
+        if ($this->user_id === null) {
+            return false;
+        }
+
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM additional_information WHERE user_id = :user_id");
-        $stmt->execute([':user_id' => $userId]);
+        $stmt->execute([':user_id' => $this->user_id]);
         $exists = $stmt->fetchColumn() > 0;
-    
+
         if ($exists) {
-          
             $stmt = $this->db->prepare("
-                UPDATE additional_information
-                SET image = :profile_picture
+                UPDATE additional_information 
+                SET image = :image, address = :address 
                 WHERE user_id = :user_id
             ");
-            return $stmt->execute([
-                ':profile_picture' => $pictureName,
-                ':user_id' => $userId
-            ]);
-        } else {
-           
-            $stmt = $this->db->prepare("
-                INSERT INTO additional_information (user_id, image)
-                VALUES (:user_id, :profile_picture) 
-            ");
-            return $stmt->execute([
-                ':user_id' => $userId,
-                ':profile_picture' => $pictureName
-            ]);
-        }
-    }
-
-
-    public function updateAddress(int $userId, string $address): bool
-    {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) FROM additional_information WHERE user_id = :user_id
-        ");
-        $stmt->execute([':user_id' => $userId]);
-        $exists = $stmt->fetchColumn() > 0;
-    
-        if ($exists) {
-            $stmt = $this->db->prepare("
-                UPDATE additional_information SET address = :address WHERE user_id = :user_id
-            ");
         } else {
             $stmt = $this->db->prepare("
-                INSERT INTO additional_information (user_id, address) VALUES (:user_id, :address)
+                INSERT INTO additional_information (user_id, image, address) 
+                VALUES (:user_id, :image, :address)
             ");
         }
-    
+
         return $stmt->execute([
-            ':user_id' => $userId,
-            ':address' => $address
+            ':user_id' => $this->user_id,
+            ':image' => $this->image,
+            ':address' => $this->address
         ]);
     }
-
-    
-
 }
-    

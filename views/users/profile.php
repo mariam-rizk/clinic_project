@@ -3,62 +3,84 @@ use App\models\User;
 use App\models\AdditionalInformation;
 use App\core\Session;
 
-$userId = Session::get('user')['id'];
+
+$userSession = Session::get('user');
+if (!$userSession) {
+    Session::set('errors', 'Unauthorized access.');
+    header('Location: ?page=login');
+    exit;
+}
+
+
 $userModel = new User($db);
-$infoModel = new AdditionalInformation($db);
-
-$user = $userModel->getById($userId);
-$additionalInfo = $infoModel->getByUserId($userId);
+$user = $userModel->getById($userSession['id']);
 
 
-$profileImage = $additionalInfo['image'] ?? null;
+$additionalInfoModel = new AdditionalInformation($db);
+$additionalInfoModel->getByUserId($userSession['id']);
+
+$imagePath = 'uploads/profile_pictures/';
+$image = $additionalInfoModel->getImage();
+$defaultIcon = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+
+if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
+    $src = $imagePath . htmlspecialchars($image);
+} else {
+    $src = $defaultIcon;
+}
 ?>
 
-<div class="container py-5">
-    <h1 class="text-center mb-4">Your Profile</h1>
-
-    <div class="card shadow p-4">
-        <div class="text-center mb-4">
-            <?php if (!empty($profileImage)): ?>
-                
-                <img src="uploads/profile_pictures/<?= htmlspecialchars($additionalInfo['image'] ) ?>" alt="Profile Image"
-                     class="rounded-circle" style="width:150px;height:150px;object-fit:cover;">
-
-            <?php else: ?>
-                <img src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y"
-                     alt="Default Avatar" class="rounded-circle" style="width:150px;height:150px;object-fit:cover;">
-            <?php endif; ?>
-
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Profile</h2>
+    <div class="row">
+        <div class="col-md-4 text-center">
+            <img src="<?= $src ?>" class="img-fluid rounded-circle" alt="Profile Photo"
+                 style="width: 200px; height: 200px; object-fit: cover;">
             <div class="mt-3">
-                <a href="?page=upload_photo" class="btn btn-secondary">Upload Photo</a>
+                <a href="?page=upload_photo" class="btn btn-success">Upload/Change Photo</a>
             </div>
+            <?php if ($image): ?>
+                <form method="post" action="?page=delete_photo"
+                      onsubmit="return confirm('Are you sure you want to delete your profile photo?')" class="mt-2">
+                    <button type="submit" class="btn btn-danger">Delete Photo</button>
+                </form>
+            <?php endif; ?>
         </div>
 
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Name:</strong> <?= htmlspecialchars($user['name'] ?? '') ?></li>
-            <li class="list-group-item"><strong>Email:</strong> <?= htmlspecialchars($user['email'] ?? '') ?></li>
-            <li class="list-group-item"><strong>Phone:</strong> <?= htmlspecialchars($user['phone'] ?? '') ?></li>
-            <li class="list-group-item"><strong>Gender:</strong> <?= htmlspecialchars($user['gender'] ?? '') ?></li>
-            <li class="list-group-item"><strong>Date of Birth:</strong> <?= htmlspecialchars($user['date_of_birth'] ?? '') ?></li>
-            <li class="list-group-item"><strong>Role:</strong> <?= htmlspecialchars($user['role'] ?? 'user') ?></li>
-            <li class="list-group-item"><strong>Registered At:</strong> <?= htmlspecialchars($user['created_at'] ?? '') ?></li>
-        </ul>
-
-        <?php if (!empty($additionalInfo['address'])): ?>
+        <div class="col-md-8">
+            <table class="table">
+                <tr>
+                    <th>Name</th>
+                    <td><?= htmlspecialchars($user->getName()) ?></td>
+                </tr>
+                <tr>
+                    <th>Email</th>
+                    <td><?= htmlspecialchars($user->getEmail()) ?></td>
+                </tr>
+                <tr>
+                    <th>Phone</th>
+                    <td><?= htmlspecialchars($user->getPhone()) ?></td>
+                </tr>
+                <tr>
+                    <th>Gender</th>
+                    <td><?= htmlspecialchars($user->getGender()) ?></td>
+                </tr>
+                <tr>
+                    <th>Birth Date</th>
+                    <td><?= htmlspecialchars($user->getDateOfBirth()) ?></td>
+                </tr>
+                <?php if ($additionalInfoModel): ?>
+                    <tr>
+                        <th>Address</th>
+                        <td><?= htmlspecialchars($additionalInfoModel->getAddress() ?? '') ?></td>
+                    </tr>
+                <?php endif; ?>
+            </table>
             <div class="mt-3">
-                <h5>Additional Information</h5>
-                <p><strong>Address:</strong> <?= htmlspecialchars($additionalInfo['address']) ?></p>
+                <a href="?page=edit_profile" class="btn btn-outline-primary">Edit Profile</a>
+                <a href="?page=additional_info" class="btn btn-outline-secondary">Additional Info</a>
             </div>
-        <?php endif; ?>
-
-        <div class="mt-3 d-flex flex-wrap gap-2">
-            <a href="?page=edit_profile" class="btn btn-primary">Edit Profile</a>
-            <?php if(!empty($additionalInfo['address'])):?> 
-            <a href="?page=additional_info" class="btn btn-secondary">Edit Address</a>
-            <?php else: ?>
-            <a href="?page=additional_info" class="btn btn-info">Add Address</a>
-            <?php endif; ?>
-            
         </div>
     </div>
 </div>

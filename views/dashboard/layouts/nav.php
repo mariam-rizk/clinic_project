@@ -1,4 +1,9 @@
-<!-- nav.php -->
+<?php
+$user = $_SESSION['user'] ?? null;
+$name = $user ? ($user['role'] === 'doctor' ? 'Dr. ' . htmlspecialchars($user['name']) : htmlspecialchars($user['name'])) : 'Admin';
+$email = $user['email'] ?? '';
+?>
+ <!-- nav -->
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
   <ul class="navbar-nav">
     <li class="nav-item">
@@ -16,8 +21,8 @@
         <img src="dashboard_assets/img/avatar5.png" class='img-circle elevation-2' width="40" height="40" alt="">
       </a>
       <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right p-3">
-        <h4 class="h4 mb-0"><strong><?= $_SESSION['admin']['name'] ?? 'Admin' ?></strong></h4>
-        <div class="mb-3"><?= $_SESSION['admin']['email'] ?? '' ?></div>
+        <h4 class="h4 mb-0"><strong><?= $name ?></strong></h4>
+        <div class="mb-3"><?= htmlspecialchars($email) ?></div>
         <div class="dropdown-divider"></div>
         <a href="#" class="dropdown-item">
           <i class="fas fa-user-cog mr-2"></i> Settings
@@ -27,10 +32,11 @@
           <i class="fas fa-lock mr-2"></i> Change Password
         </a>
         <div class="dropdown-divider"></div>
-        <a href="logout.php" class="dropdown-item text-danger">
+        <a href="?page=admin_logout" onclick="return confirm('Are you sure you want to logout?')" class="dropdown-item text-danger">
           <i class="fas fa-sign-out-alt mr-2"></i> Logout
         </a>
       </div>
     </li>
   </ul>
 </nav>
+
