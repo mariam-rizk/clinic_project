@@ -68,7 +68,10 @@ class MajorsController
         }
     }
 
-
+    public function create()
+    {
+        
+    }
 
     public function store()
     {
@@ -174,7 +177,6 @@ class MajorsController
                 throw new \Exception("Major not found.");
             }
 
-
             $query = "SELECT COUNT(*) FROM doctors WHERE major_id = :id";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -184,7 +186,6 @@ class MajorsController
             if ($doctorCount > 0) {
                 throw new \Exception("Cannot delete major because it is associated with doctors.");
             }
-
 
             $query = "DELETE FROM majors WHERE id = :id";
             $stmt = $this->pdo->prepare($query);
