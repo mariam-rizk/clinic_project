@@ -33,8 +33,7 @@ if (!Session::has('user')) {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            if (!empty($history)): ?>
+                            <?php if (!empty($history)): ?>
                                 <?php $counter = 1; ?>
                                 <?php foreach ($history as $record): ?>
                                     <?php
@@ -59,25 +58,19 @@ if (!Session::has('user')) {
                                     }
                                     ?>
                                     <tr>
-                                        <th scope="row"><?php echo $counter++; ?></th>
-                                        <td><?php echo htmlspecialchars($record['date']); ?></td>
-                                        <td class="d-flex align-items-center gap-2">
-                                            <a href="?page=doctor&id=<?php echo htmlspecialchars($record['doctor_id']); ?>">
-                                                <?php echo htmlspecialchars($record['doctor_name']); ?>
-                                            </a>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($record['major'] ?? 'N/A'); ?></td>
-                                        <td>
-                                            <a href="https://www.google.com/maps/search/?api=1&query=<?php echo urlencode($record['location']); ?>" target="_blank">
-                                                <?php echo htmlspecialchars($record['location']); ?>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <span class="status-badge <?php echo $statusClass; ?>">
-                                                <?php echo $statusText; ?>
-                                            </span>
-                                        </td>
-                                    </tr>
+    <th scope="row"><?php echo $counter++; ?></th>
+    <td><?php echo htmlspecialchars($record['date']); ?></td>
+    <td class="d-flex align-items-center gap-2">
+        <?php echo htmlspecialchars($record['doctor_name']); ?>
+    </td>
+    <td><?php echo htmlspecialchars($record['major'] ?? 'N/A'); ?></td>
+    <td><?php echo htmlspecialchars($record['location']); ?></td>
+    <td>
+        <span class="status-badge <?php echo $statusClass; ?>">
+            <?php echo $statusText; ?>
+        </span>
+    </td>
+</tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>

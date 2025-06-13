@@ -18,19 +18,20 @@ if (!Session::has('user')) {
         <div class="d-flex flex-column gap-3 details-card doctor-details">
             <div class="details d-flex gap-2 align-items-center">
                 <img
-                    src="<?php echo htmlspecialchars($doctor['image']); ?>"
+                    src="<?php echo htmlspecialchars($doctor['image'] ?? '/path/to/default/image.jpg'); ?>"
                     alt="Doctor"
                     class="img-fluid rounded-circle"
                     height="150"
                     width="150"
                 />
                 <div class="details-info d-flex flex-column gap-3">
-                    <h4 class="card-title fw-bold"><?php echo htmlspecialchars($doctor['name'] ); ?></h4>
-                    <h6 class="card-title fw-bold"><?php echo htmlspecialchars(($doctor['major_id'] ) . ' - ' . ($doctor['bio'] )); ?></h6>
+                    <h4 class="card-title fw-bold"><?php echo htmlspecialchars($doctor['name'] ?? 'Unknown Doctor'); ?></h4>
+                    <h6 class="card-title fw-bold"><?php echo htmlspecialchars(($doctor['major_id'] ?? 'Unknown Major') . ' - ' . ($doctor['bio'] ?? 'No bio available')); ?></h6>
                 </div>
             </div>
             <hr />
-            <form class="form" method="POST" action="">
+           
+            <form class="form" method="POST" action="?page=booking&id=<?php echo htmlspecialchars($doctor_id); ?>">
                 <div class="form-items">
                     <div class="mb-3">
                         <label class="form-label required-label" for="name">Name</label>
@@ -42,11 +43,11 @@ if (!Session::has('user')) {
                     </div>
                     <div class="mb-3">
                         <label class="form-label required-label" for="day">Day</label>
-                        <select class="form-select" id="day" name="day" required>
-                            <option value="" disabled selected>Select a day</option>
+                        <select class="form-select" id="day" name="day" onchange="window.location.href='?page=booking&id=<?php echo htmlspecialchars($doctor_id); ?>&day=' + encodeURIComponent(this.value)" required>
+                            <option value="" disabled <?php echo empty($_GET['day']) ? 'selected' : ''; ?>>Select a day</option>
                             <?php if (!empty($availableDays)): ?>
                                 <?php foreach ($availableDays as $day): ?>
-                                    <option value="<?php echo htmlspecialchars($day); ?>">
+                                    <option value="<?php echo htmlspecialchars($day); ?>" <?php echo ($_GET['day'] ?? '') === $day ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($day); ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -86,3 +87,46 @@ if (!Session::has('user')) {
         </div>
     </div>
 </div>
+<script>
+document.getElementById('day').addEventListener('change', function() {
+    const day = this.value;
+    const doctorId = <?php echo json_encode($doctor_id); ?>;
+    const hourSelect = document.getElementById('hour');
+
+    // إعادة تعيين قائمة الساعات
+    hourSelect.innerHTML = '<option value="" disabled selected>Loading hours...</option>';
+
+    // تحديث الـ URL بدون إعادة تحميل
+    if (day) {
+        const newUrl = `?page=booking&id=${doctorId}&day=${encodeURIComponent(day)}`;
+        history.pushState({}, '', newUrl);
+
+        fetch(`?page=get_available_hours&doctor_id=${doctorId}&day=${encodeURIComponent(day)}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            hourSelect.innerHTML = '<option value="" disabled selected>Select an hour</option>';
+            if (data.error) {
+                hourSelect.innerHTML += '<option value="" disabled>' + data.error + '</option>';
+            } else if (data.hours && data.hours.length > 0) {
+                data.hours.forEach(hour => {
+                    const option = document.createElement('option');
+                    option.value = hour;
+                    option.textContent = hour;
+                    hourSelect.appendChild(option);
+                });
+            } else {
+                hourSelect.innerHTML += '<option value="" disabled>No available hours</option>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching hours:', error);
+            hourSelect.innerHTML = '<option value="" disabled>Error loading hours</option>';
+        });
+    }
+});
+</script>
