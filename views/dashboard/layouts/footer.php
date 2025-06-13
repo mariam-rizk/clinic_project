@@ -15,5 +15,6 @@
 <script src="dashboard_assets/js/adminlte.min.js"></script>
 <!-- AdminLTE for demo purposes -->
 <script src="dashboard_assets/js/demo.js"></script>
+
 </body>
 </html>

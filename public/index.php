@@ -8,6 +8,8 @@ use App\core\Database;
 use App\controllers\AuthController;
 use App\controllers\ContactController;
 use App\controllers\ProfileController;
+use App\controllers\BookingController;
+use App\controllers\HistoryController;
 // use App\models\Doctor;
 // use App\models\Major;
 
@@ -114,12 +116,20 @@ switch ($page) {
         break;
     
     case 'booking':
-        require '../views/bookings/booking_form.php';
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            Session::set('error', 'No doctor ID provided');
+            header("Location: ?page=doctors");
+            exit;
+        }
+        $controller = new BookingController($db); 
+        $controller->create($id);
         break;
 
     case 'history':
-        require '../views/bookings/history.php';
-        break;
+    $controller = new HistoryController($db);
+    $controller->index();
+    break;
 
     case 'contact':
         require '../views/contact_us/contact_form.php';
