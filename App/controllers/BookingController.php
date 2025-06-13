@@ -20,7 +20,7 @@ class BookingController
     public function create($doctorId)
     {
         if (!$this->userId) {
-            Session::set('error', 'Please log in to create a booking');
+            Session::set('error', 'Please login to create a booking');
             header("Location: ?page=login");
             exit;
         }
@@ -62,8 +62,7 @@ class BookingController
                 header("Location: ?page=doctors");
                 exit;
             }
-
-            $doctor['image'] = $doctor['image'];
+            $doctor['image'] = $doctor['image'] ?? '/path/to/default/image.jpg';
         } catch (\PDOException $e) {
             Session::set('error', 'Failed to fetch doctor: ' . $e->getMessage());
             header("Location: ?page=doctors");
@@ -74,10 +73,10 @@ class BookingController
         $availableDays = $doctorSchedule->getAvailableDays();
         $doctor_id = $doctorId;
 
-        $defaultDay = !empty($availableDays) ? $availableDays[0] : '';
+        $selectedDay = $_GET['day'] ?? (!empty($availableDays) ? $availableDays[0] : '');
         $availableHours = [];
-        if ($defaultDay) {
-            $availableHours = $doctorSchedule->getAvailableHours($defaultDay);
+        if ($selectedDay) {
+            $availableHours = $doctorSchedule->getAvailableHours($selectedDay);
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -102,7 +101,7 @@ class BookingController
     public function confirm($bookingId)
     {
         if (!$this->userId) {
-            Session::set('error', 'Please log in to confirm a booking');
+            Session::set('error', 'Please login to confirm a booking');
             header("Location: ?page=login");
             exit;
         }
@@ -125,7 +124,7 @@ class BookingController
         $day = $_GET['day'] ?? '';
         if (empty($day) || !is_string($day)) {
             http_response_code(400);
-            echo json_encode(['error' => 'Invalid day format']);
+            echo json_encode(['error' => 'Day is not specified or invalid']);
             error_log("Error: Day is empty or invalid: $day");
             exit;
         }
@@ -148,7 +147,7 @@ class BookingController
                 exit;
             }
             
-            echo json_encode($hours);
+            echo json_encode(['hours' => $hours]);
             error_log("Returned hours: " . json_encode($hours));
         } catch (\Exception $e) {
             http_response_code(500);
