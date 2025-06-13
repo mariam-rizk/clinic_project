@@ -1,10 +1,12 @@
-<?php 
+<?php
+
 namespace App\models;
 
 use PDO;
 use PDOException;
 
-class Doctor{
+class Doctor
+{
     private $id;
     private $name;
     private $email;
@@ -15,7 +17,7 @@ class Doctor{
     private $major_id;
     private $bio;
 
-    public function __construct($id,$name,$email,$password,$phone,$gender,$image,$major_id,$bio)
+    public function __construct($id, $name, $email, $password, $phone, $gender, $image, $major_id, $bio)
     {
         $this->id = $id;
         $this->name = $name;
@@ -26,49 +28,118 @@ class Doctor{
         $this->image = $image;
         $this->major_id = $major_id;
         $this->bio = $bio;
-
     }
 
-    public function getId(){
+    public function getId()
+    {
         return $this->id;
     }
-    public function getName(){
+    public function getName()
+    {
         return $this->name;
     }
-    public function getEmail(){
+    public function getEmail()
+    {
         return $this->email;
     }
+
+    public function getPhone()
+    {
+
     public function getPassword(){
         return $this->password;
     }
     public function getPhone(){
+
         return $this->phone;
     }
-    public function getGender(){
+    public function getGender()
+    {
         return $this->gender;
     }
-    public function getImage(){
+    public function getImage()
+    {
         return $this->image;
     }
-    public function getMajorId($pdo){
-      try {
-          $stm = $pdo->prepare("SELECT name from majors WHERE id= :id");
-        $stm->bindParam(":id",$this->major_id);
-        $stm->execute();
-        $major = $stm->fetch(PDO::FETCH_ASSOC);
-        return $major['name']? $major['name']: null;
-
-      } catch (PDOException $e) {
-        echo "Error fetching major name: " . $e->getMessage();
-        return null;
-      }
+    public function getMajorId($pdo)
+    {
+        try {
+            $stm = $pdo->prepare("SELECT name from majors WHERE id= :id");
+            $stm->bindParam(":id", $this->major_id);
+            $stm->execute();
+            $major = $stm->fetch(PDO::FETCH_ASSOC);
+            return $major['name'] ? $major['name'] : null;
+        } catch (PDOException $e) {
+            echo "Error fetching major name: " . $e->getMessage();
+            return null;
+        }
     }
-     public function getBio(){
+    public function getBio()
+    {
         return $this->bio;
     }
 
-    public static function create(PDO $pdo,$name,$email,$password,$phone,$gender,$image,$major_id,$bio){
+    public static function createDoctor(PDO $pdo, $name, $email, $password, $phone, $gender, $image, $major_id, $bio)
+    {
+        $stm = $pdo->prepare("INSERT INTO doctors (`name`, `email`, `phone`, `gender`, `image`, `major_id`, `bio`, `password`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
+        $stm->bindParam(1, $name);
+        $stm->bindParam(2, $email);
+        $stm->bindParam(3, $phone);
+        $stm->bindParam(4, $gender);
+        $stm->bindParam(5, $image);
+        $stm->bindParam(6, $major_id);
+        $stm->bindParam(7, $bio);
+        $stm->bindParam(8, $password);
+
+        $query = $stm->execute();
+        if ($query) {
+            $id = $pdo->lastInsertId();
+            return new Doctor($id, $name, $email, $password, $phone, $gender, $image, $major_id, $bio);
+        }
+
+        return null;
+    }
+
+    public static function deleteDoctor($pdo, int $id){
+        try{
+            $stm = $pdo->prepare("DELETE FROM doctors WHERE id =:id");
+            $stm->bindParam(":id",$id);
+            $stm->execute();
+
+            if ($stm->rowCount() > 0) {
+                    return true; 
+                } else {
+                    return false; 
+                }
+        }catch(PDOException $e){
+            return "Error deleting doctor: " . $e->getMessage();
+        } 
+    }
+
+    public static function editDoctor($pdo, $id, $name, $email, $phone, $gender, $image, $major_id, $bio ){
+        try{
+
+            $stm = $pdo->prepare("UPDATE doctors SET `name` = :name, `email` = :email, `phone` = :phone, `gender` = :gender, `image` = :image, `major_id` = :major_id, `bio` = :bio WHERE `id` = :id");
+
+            $stm->bindParam(':name', $name);
+            $stm->bindParam(':email', $email);
+            $stm->bindParam(':phone', $phone);
+            $stm->bindParam(':gender', $gender);
+            $stm->bindParam(':image', $image);
+            $stm->bindParam(':major_id', $major_id);
+            $stm->bindParam(':bio', $bio);
+            $stm->bindParam(':id', $id);
+
+            $stm->execute();
+            if ($stm->rowCount() > 0) {
+                    return true; 
+                } else {
+                    return false; 
+                }
+        }catch(PDOException $e){
+            return "Error updating doctor: " . $e->getMessage();
+        }
     }
 
     public static function getAll(PDO $pdo)
@@ -76,36 +147,42 @@ class Doctor{
         $stm = $pdo->prepare("SELECT * FROM `doctors`");
         $stm->execute();
         $results = $stm->fetchAll(PDO::FETCH_ASSOC);
-        $doctors=[];
-        foreach($results as $doctor){
-            $doctors[]= new Doctor($doctor['id'],$doctor['name'],$doctor['email'],$doctor['password'],$doctor['phone'],$doctor['gender'],$doctor['image'],$doctor['major_id'],$doctor['bio']);
-
+        $doctors = [];
+        foreach ($results as $doctor) {
+            $doctors[] = new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
         }
         return $doctors;
     }
 
-    public static function getByMajor(PDO $pdo ,$major)
+    public static function getByMajor(PDO $pdo, $major)
     {
-       $stm = $pdo->prepare("SELECT * FROM doctors WHERE major_id = (SELECT id FROM majors WHERE name= :major)");
-       $stm->bindParam(":major",$major);
-       $stm->execute();
-       $results = $stm->fetchAll(PDO::FETCH_ASSOC);
-       $doctors =[];
-       foreach($results as $doctor){
-            $doctors[]= new Doctor($doctor['id'],$doctor['name'],$doctor['email'],$doctor['password'],$doctor['phone'],$doctor['gender'],$doctor['image'],$doctor['major_id'],$doctor['bio']);        
-       }
-       return $doctors;
+        $stm = $pdo->prepare("SELECT * FROM doctors WHERE major_id = (SELECT id FROM majors WHERE name= :major)");
+        $stm->bindParam(":major", $major);
+        $stm->execute();
+        $results = $stm->fetchAll(PDO::FETCH_ASSOC);
+        $doctors = [];
+        foreach ($results as $doctor) {
+            $doctors[] = new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
+        }
+        return $doctors;
     }
 
-    public static function getById(PDO $pdo ,$id)
+    public static function getById(PDO $pdo, $id)
     {
         $stm = $pdo->prepare("SELECT * FROM doctors WHERE id = :id");
-        $stm->bindParam(":id",$id);
+        $stm->bindParam(":id", $id);
         $stm->execute();
         $doctor = $stm->fetch(PDO::FETCH_ASSOC);
-        $doctor= new Doctor($doctor['id'],$doctor['name'],$doctor['email'],$doctor['password'],$doctor['phone'],$doctor['gender'],$doctor['image'],$doctor['major_id'],$doctor['bio']);        
-       
-       return $doctor;
+        $doctor = new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
+
+        return $doctor;
+    }
+
+    public static function countDoctors(PDO $pdo){
+        $stm = $pdo->prepare("SELECT count(*) as count FROM `doctors` ");
+        $stm->execute();
+        $count = $stm->fetch(PDO::FETCH_ASSOC);
+        return $count['count'];
     }
 
 
@@ -134,5 +211,6 @@ class Doctor{
 
 
    
+
 
 }
