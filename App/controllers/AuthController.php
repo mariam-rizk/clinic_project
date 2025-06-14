@@ -15,11 +15,11 @@ class AuthController
         $this->db = $db;
     }
 
+
     public function register()
     {
         $data = $_POST;
 
-        $validator = new Validation();
         $rules = [
             'name' => ['required', 'string', 'min:3'],
             'phone' => ['required', 'phone'],
@@ -27,9 +27,11 @@ class AuthController
             'password' => ['required', 'min:6'],
             'confirm_password' => ['required', 'match:password'],
             'gender' => ['required', 'in:Male,Female'],
-            'dateofbirth' => ['required', 'date']
+            'dateofbirth' => ['required', 'date'],
         ];
 
+
+        $validator = new Validation();
         if (!$validator->validate($data, $rules)) {
             Session::set('errors', $validator->getErrors());
             Session::set('old', $data);
@@ -37,8 +39,8 @@ class AuthController
             exit;
         }
 
+     
         $userModel = new User($this->db);
-
         if ($userModel->findByEmail($data['email'])) {
             Session::set('errors', ['email' => ['Email is already registered.']]);
             Session::set('old', $data);
@@ -46,23 +48,31 @@ class AuthController
             exit;
         }
 
-         $user = new User($this->db);
-         
-         $user->setName($data['name']);
-         $user->setEmail($data['email']);
-         $user->setPhone($data['phone']);
-         $user->setPassword(password_hash($data['password'], PASSWORD_DEFAULT));
-         $user->setGender($data['gender']);
-         $user->setDateOfBirth($data['dateofbirth']);
-         $user->setRole('user'); 
-         $user->setStatus('active'); 
-         $user->create(); 
-         
+   
+        $user = new User($this->db);
+        $user->setName($data['name']);
+        $user->setPhone($data['phone']);
+        $user->setEmail($data['email']);
+        $user->setPassword(password_hash($data['password'], PASSWORD_DEFAULT));
+        $user->setGender($data['gender']);
+        $user->setDateOfBirth($data['dateofbirth']);
+        $user->setRole('user');
+        $user->setStatus('active');
 
+        if (!$user->create()) {
+            Session::set('errors', ['something went wrong!']);
+            Session::set('old', $data);
+            header('Location: ?page=register');
+            exit;
+        }
+
+ 
         Session::set('success', 'Account created successfully.');
         header('Location: ?page=login');
         exit;
     }
+
+
 
     public function login()
     {
