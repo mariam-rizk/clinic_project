@@ -3,7 +3,6 @@ use App\models\User;
 use App\models\AdditionalInformation;
 use App\core\Session;
 
-
 $userSession = Session::get('user');
 if (!$userSession) {
     Session::set('errors', 'Unauthorized access.');
@@ -11,25 +10,26 @@ if (!$userSession) {
     exit;
 }
 
-
 $userModel = new User($db);
 $user = $userModel->getById($userSession['id']);
 
-
 $additionalInfoModel = new AdditionalInformation($db);
-$additionalInfoModel->getByUserId($userSession['id']);
+$additionalInfo = $additionalInfoModel->getByUserId($userSession['id']);
+$address = $additionalInfo?->getAddress() ?? '';
 
+$image = $additionalInfo?->getImage(); 
 $imagePath = 'uploads/profile_pictures/';
-$image = $additionalInfoModel->getImage();
 $defaultIcon = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
 
-if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
+$fullImagePath = __DIR__ . '/../../public/' . $imagePath . $image;
+if ($image && file_exists($fullImagePath)) {
     $src = $imagePath . htmlspecialchars($image);
 } else {
     $src = $defaultIcon;
 }
 ?>
+
 
 <div class="container my-5">
     <h2 class="mb-4 text-center">Profile</h2>
@@ -70,11 +70,12 @@ if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
                     <th>Birth Date</th>
                     <td><?= htmlspecialchars($user->getDateOfBirth()) ?></td>
                 </tr>
-                <?php if ($additionalInfoModel): ?>
-                    <tr>
-                        <th>Address</th>
-                        <td><?= htmlspecialchars($additionalInfoModel->getAddress() ?? '') ?></td>
-                    </tr>
+
+                <?php if (!empty($address)): ?>
+                <tr>
+                    <th>Address</th>
+                    <td><?= htmlspecialchars($address) ?></td>
+                </tr>
                 <?php endif; ?>
             </table>
             <div class="mt-3">

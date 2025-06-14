@@ -1,5 +1,4 @@
 <?php
-
 use App\models\User;
 use App\models\AdditionalInformation;
 use App\core\Session;
@@ -14,19 +13,16 @@ if (!$userSession) {
 $userModel = new User($db);
 $user = $userModel->getById($userSession['id']);
 
-$additionalInfo = new AdditionalInformation($db);
-$additionalInfo->getByUserId($userSession['id']);
+$additionalInfoModel = new AdditionalInformation($db);
+$additionalInfo = $additionalInfoModel->getByUserId($userSession['id']);
 
-
+$image = $additionalInfo?->getImage(); 
 $imagePath = 'uploads/profile_pictures/';
 $defaultIcon = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
-$image = null;
-if (isset($additionalInfo) && $additionalInfo instanceof \App\models\AdditionalInformation) {
-    $image = $additionalInfo->getImage();
-}
 
-if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {
+$fullImagePath = __DIR__ . '/../../public/' . $imagePath . $image;
+if ($image && file_exists($fullImagePath)) {
     $src = $imagePath . htmlspecialchars($image);
 } else {
     $src = $defaultIcon;

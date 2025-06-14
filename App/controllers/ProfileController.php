@@ -12,15 +12,23 @@ class ProfileController
 {
     private PDO $db;
     private User $userModel;
+    private const UPLOAD_DIR = __DIR__ . '/../../public/uploads/profile_pictures/';
 
     public function __construct(PDO $db)
     {
         $this->db = $db;
         $this->userModel = new User($db);
     }
+
+    private function getAuthenticatedUserId(): ?int
+    {
+        return Session::get('user')['id'] ?? null;
+    }
+
     public function edit_profile()
     {
-        $userId = Session::get('user')['id'] ?? null;
+        $userId = $this->getAuthenticatedUserId();
+
         if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
             Session::set('errors', 'Unauthorized action.');
             header('Location: ?page=edit_profile');
@@ -44,29 +52,39 @@ class ProfileController
         ];
 
         $validator = new Validation();
-
         if (!$validator->validate($data, $rules)) {
             Session::set('errors', $validator->getErrors());
             Session::set('old', $data);
             header('Location: ?page=edit_profile');
             exit;
-            }
+        }
+
+        $currentUser = $this->userModel->getById($userId);
+
+        $isChanged = (
+            $data['name'] !== $currentUser->getName() ||
+            $data['email'] !== $currentUser->getEmail() ||
+            $data['phone'] !== $currentUser->getPhone() ||
+            $data['gender'] !== $currentUser->getGender() ||
+            $data['date_of_birth'] !== $currentUser->getDateOfBirth()
+        );
+
+        if (!$isChanged) {
+            Session::set('info', 'No changes were made.');
+            header('Location: ?page=profile');
+            exit;
+        }
 
         $updated = $this->userModel->updateUserInfo($userId, $data);
 
-        if ($updated) {
-            Session::set('success', 'Profile updated successfully.');
-        } else {
-            Session::set('info', 'No changes were made or update failed.');
-        }
-
+        Session::set($updated ? 'success' : 'errors', $updated ? 'Profile updated successfully.' : 'Update failed.');
         header('Location: ?page=profile');
         exit;
     }
 
     public function upload_photo()
     {
-        $userId = Session::get('user')['id'] ?? null;
+        $userId = $this->getAuthenticatedUserId();
         if (!$userId) {
             Session::set('errors', 'Unauthorized action.');
             header("Location: ?page=upload_photo");
@@ -79,13 +97,12 @@ class ProfileController
             exit;
         }
 
-        $fileName = time() . '_' . basename($_FILES['photo']['name']);
-        $uploadDir = __DIR__ . '../../../public/uploads/profile_pictures/';
-        $destination = $uploadDir . $fileName;
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+        if (!is_dir(self::UPLOAD_DIR)) {
+            mkdir(self::UPLOAD_DIR, 0777, true);
         }
+
+        $fileName = time() . '_' . basename($_FILES['photo']['name']);
+        $destination = self::UPLOAD_DIR . $fileName;
 
         if (!move_uploaded_file($_FILES['photo']['tmp_name'], $destination)) {
             Session::set('errors', 'Upload failed.');
@@ -93,16 +110,18 @@ class ProfileController
             exit;
         }
 
-        $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->getByUserId($userId);
-
-        $oldImage = $additionalInfo->getImage();
-        if ($oldImage && file_exists($uploadDir . $oldImage)) {
-            unlink($uploadDir . $oldImage);
-        }
+        $additionalInfoModel = new AdditionalInformation($this->db);
+        $additionalInfo = $additionalInfoModel->getByUserId($userId) ?? new AdditionalInformation($this->db);
 
         $additionalInfo->setUserId($userId);
+
+        $oldImage = $additionalInfo->getImage();
+        if ($oldImage && file_exists(self::UPLOAD_DIR . $oldImage)) {
+            unlink(self::UPLOAD_DIR . $oldImage);
+        }
+
         $additionalInfo->setImage($fileName);
+        $additionalInfo->setAddress($additionalInfo->getAddress());
         $additionalInfo->save();
 
         Session::set('success', 'Photo uploaded successfully!');
@@ -112,75 +131,76 @@ class ProfileController
 
     public function delete_photo()
     {
-        $userId = Session::get('user')['id'] ?? null;
+        $userId = $this->getAuthenticatedUserId();
 
-        $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->getByUserId($userId);
+        if (!$userId) {
+            Session::set('errors', 'Unauthorized action.');
+            header("Location: ?page=profile");
+            exit;
+        }
 
-        $image = $additionalInfo->getImage();
-        $uploadPath = __DIR__ . "../../../public/uploads/profile_pictures/";
+        $additionalInfoModel = new AdditionalInformation($this->db);
+        $additionalInfo = $additionalInfoModel->getByUserId($userId);
 
-        if ($image && file_exists($uploadPath . $image)) {
-            unlink($uploadPath . $image);
+        if (!$additionalInfo || !$additionalInfo->getImage()) {
+            Session::set('errors', 'No photo to delete.');
+            header("Location: ?page=profile");
+            exit;
+        }
+
+        $imagePath = self::UPLOAD_DIR . $additionalInfo->getImage();
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
         }
 
         $additionalInfo->setImage(null);
+        $additionalInfo->setAddress($additionalInfo->getAddress());
         $additionalInfo->save();
 
         Session::set('success', 'Photo deleted successfully!');
         header("Location: ?page=profile");
         exit;
     }
+
     public function save_additional_info()
     {
-        $userId = Session::get('user')['id'] ?? null;
-    
+        $userId = $this->getAuthenticatedUserId();
+
         if (!$userId || $_SERVER['REQUEST_METHOD'] !== 'POST') {
             Session::set('errors', 'Unauthorized action.');
             header('Location: ?page=additional_info');
             exit;
         }
-    
+
         $address = trim($_POST['address'] ?? '');
-    
+
         $validator = new Validation();
-    
-        $rules = [
-            'address' => ['required', 'string', 'min:5'],
-        ];
-    
+        $rules = ['address' => ['required', 'string', 'min:5']];
+
         if (!$validator->validate(['address' => $address], $rules)) {
             Session::set('errors', $validator->getErrors());
             Session::set('old', ['address' => $address]);
             header('Location: ?page=additional_info');
             exit;
         }
-    
-        $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->getByUserId($userId);
-    
-        $oldAddress = $additionalInfo->getAddress();
-    
-    
-        if ($oldAddress === $address) {
+
+        $additionalInfoModel = new AdditionalInformation($this->db);
+        $additionalInfo = $additionalInfoModel->getByUserId($userId) ?? new AdditionalInformation($this->db);
+
+        $additionalInfo->setUserId($userId);
+
+        if ($additionalInfo->getAddress() === $address) {
             Session::set('info', 'No changes were made.');
             header('Location: ?page=profile');
             exit;
         }
-    
-        $additionalInfo->setUserId($userId);
+
         $additionalInfo->setAddress($address);
-    
-        if ($additionalInfo->save()) {
-            Session::set('success', 'Address saved successfully.');
-        } else {
-            Session::set('errors', 'Failed to save address.');
-        }
-    
+        $additionalInfo->setImage($additionalInfo->getImage());
+        $additionalInfo->save();
+
+        Session::set('success', 'Address saved successfully.');
         header('Location: ?page=profile');
         exit;
     }
-
-
-
 }

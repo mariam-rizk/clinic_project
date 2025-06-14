@@ -10,13 +10,14 @@ if (!$userSession) {
     exit;
 }
 
+
 $userModel = new User($db);
 $user = $userModel->getById($userSession['id']);
 
-$additionalInfo = new AdditionalInformation($db);
-$additionalInfo->getByUserId($userSession['id']);
+$additionalInfoModel = new AdditionalInformation($db);
+$additionalInfo = $additionalInfoModel->getByUserId($userSession['id']);
+$address = $additionalInfo?->getAddress() ?? '';
 
-$info = $additionalInfo;
 ?>
 
 <div class="container py-5">
@@ -26,7 +27,9 @@ $info = $additionalInfo;
         <form action="?page=additional_info_controller" method="post" class="needs-validation" novalidate>
             <div class="mb-3">
                 <label for="address" class="form-label">Address:</label>
-                <textarea name="address" id="address" class="form-control <?= isset($errors['address']) ? 'is-invalid' : '' ?>" rows="3" required><?= htmlspecialchars($old['address'] ?? $info?->getAddress() ?? '') ?></textarea>
+                <textarea name="address" id="address" class="form-control <?= isset($errors['address']) ? 'is-invalid' : '' ?>" rows="3" required><?= htmlspecialchars($address) ?></textarea>
+
+                    
                 <?php if (!empty($errors['address'])): ?>
                     <?php foreach ((array)$errors['address'] as $error): ?>
                         <div class="invalid-feedback d-block" style="color:red;">
