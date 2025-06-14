@@ -41,7 +41,7 @@ if ($search) {
                     <div class="card-tools">
                         <form method="GET" class="input-group input-group" style="width: 250px;">
                             <input type="hidden" name="page" value="manage_contacts">
-                            <input type="text" name="search" class="form-control float-right" placeholder="Search" value="<?= htmlspecialchars($search ?? '') ?>">
+                            <input type="text" name="search" class="form-control float-right" placeholder="Search by subject" value="<?= htmlspecialchars($search ?? '') ?>">
                             <div class="input-group-append">
                                 <button type="submit" class="btn btn-default">
                                     <i class="fas fa-search"></i>

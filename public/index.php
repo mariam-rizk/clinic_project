@@ -17,7 +17,7 @@ Session::start();
 $user = Session::get('user');
 
 $page = $_GET['page'] ?? 'home';
-$protectedPages = ['booking', 'history', 'profile', 'upload_photo', 'additional_info', 'edit_profile'];
+$protectedPages = ['booking', 'history', 'edit_profile'];
 
 if (in_array($page, $protectedPages) && !Session::has('user')) {
     Session::set('info', 'You must login first!');
@@ -37,10 +37,6 @@ $pageTitle = match ($page) {
     'history'  => 'history of bookings',
     'login'    => 'login',
     'register' => 'register',
-    'profile'  => 'profile',
-    'upload_photo' => 'upload photo',
-    'additional_info' => 'additional information',
-    'edit_profile' => 'edit profile',	
     default    => '404-Not Found'
 };
 
@@ -98,22 +94,6 @@ switch ($page) {
         require '../views/users/additional_info.php';
         break;
 
-    
-    case 'upload_photo_controller':
-        (new ProfileController($db))->upload_photo();
-        break;
-
-    case 'delete_photo':
-        (new ProfileController($db))->delete_photo();
-        break;
-
-    case 'edit_profile_controller':
-        (new ProfileController($db))->edit_profile();
-        break;
-
-    case 'additional_info_controller':
-        (new ProfileController($db))->save_additional_info();
-        break;
     
     case 'booking':
         $id = $_GET['id'] ?? null;

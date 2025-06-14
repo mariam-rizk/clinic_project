@@ -52,25 +52,32 @@ class User
     public function setStatus(string $status): void { $this->status = $status; }
 
     
+ public function create(): bool
+{
+    $stmt = $this->db->prepare("
+        INSERT INTO users (name, phone, email, password, gender, date_of_birth, role, status, created_at)
+        VALUES (:name, :phone, :email, :password, :gender, :dob, :role, :status, NOW())
+    ");
 
-    public function create(): bool
-    {
-        $stmt = $this->db->prepare("
-            INSERT INTO users (name, phone, email, password, gender, date_of_birth, role, status)
-            VALUES (:name, :phone, :email, :password, :gender, :dob, :role, :status)
-        ");
-        
-        return $stmt->execute([
-            ':name' => $this->getName(),
-            ':phone' => $this->getPhone(),
-            ':email' => $this->getEmail(),
-            ':password' => $this->getPassword(),
-            ':gender' => $this->getGender(),
-            ':dob' => $this->getDateOfBirth(),
-            ':role' => $this->getRole(),
-            ':status' => $this->getStatus(),
-        ]);
+    $result = $stmt->execute([
+        ':name' => $this->getName(),
+        ':phone' => $this->getPhone(),
+        ':email' => $this->getEmail(),
+        ':password' => $this->getPassword(),
+        ':gender' => $this->getGender(),
+        ':dob' => $this->getDateOfBirth(),
+        ':role' => $this->getRole(),
+        ':status' => $this->getStatus(),
+    ]);
+
+    if (!$result) {
+        error_log("User Create Error: " . implode(' | ', $stmt->errorInfo()));
     }
+
+    return $result;
+}
+
+    
 
 
     public function findByEmail(string $email): ?User

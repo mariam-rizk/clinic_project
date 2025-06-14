@@ -19,6 +19,7 @@ $info = $infoModel->getByUserId($user->getId());
 
 $currentUserRole = $_SESSION['user']['role'] ?? 'user';
 
+
 ?>
 
 
@@ -83,7 +84,7 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'user';
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label>Role</label>
-                                <?php if ($currentUserRole === 'admin'): ?>
+                                <?php if ($_SESSION['admin_user']['role']=='admin'): ?>
                                     <form action="?page=update_role" method="POST" class="d-flex gap-2">
                                         <select name="role" class="form-control" required>
                                             <option value="admin" <?= $user->getRole() === 'admin' ? 'selected' : '' ?>>Admin</option>
