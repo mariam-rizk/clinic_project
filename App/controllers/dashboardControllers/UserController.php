@@ -125,59 +125,57 @@ class UserController
 
       
      public function updateRole()
-    {
-        if (!Session::has('admin_user') || Session::get('user')['role'] !== 'admin') {
-            Session::set('errors', 'Unauthorized access.');
-            header('Location: ?page=dashboard');
-            exit;
-        }
-    
-        $id = $_POST['id'] ?? null;
-        $newRole = $_POST['role'] ?? null;
-        $currentUserId = Session::get('user')['id'];
-    
-        if (!$id || !$newRole || !in_array($newRole, ['admin', 'subadmin', 'user'])) {
-            Session::set('errors', 'Invalid data.');
-            header('Location: ?page=manage_users');
-            exit;
-        }
-    
-        $userModel = new User($this->db);
-        $user = $userModel->getById($id);
-    
-        if (!$user) {
-            Session::set('errors', 'User not found.');
-            header('Location: ?page=manage_users');
-            exit;
-        }
-    
-        if ($user->getRole() === $newRole) {
-            Session::set('info', 'No changes were made.');
-            header("Location: ?page=edit_user&id={$id}");
-            exit;
-        }
-    
-        $user->setRole($newRole);
-        $userModel->updateUserInfo($id, ['role' => $newRole]);
-    
-      
-        if ($id == $currentUserId) {
-            Session::remove('admin_user');
-            Session::set('info', 'Role updated. Please log in again.');
-            header('Location: ?page=login');
-            exit;
-        }
-    
-        Session::set('success', 'User role updated successfully.');
+{
+    if (!Session::has('admin_user') || Session::get('admin_user')['role'] !== 'admin') {
+        Session::set('errors', 'Unauthorized access.');
+        header('Location: ?page=dashboard');
+        exit;
+    }
+
+    $id = $_POST['id'] ?? null;
+    $newRole = $_POST['role'] ?? null;
+    $currentUserId = Session::get('admin_user')['id']; // ← المصححة هنا
+
+    if (!$id || !$newRole || !in_array($newRole, ['admin', 'subadmin', 'user'])) {
+        Session::set('errors', 'Invalid data.');
+        header('Location: ?page=manage_users');
+        exit;
+    }
+
+    $userModel = new User($this->db);
+    $user = $userModel->getById($id);
+
+    if (!$user) {
+        Session::set('errors', 'User not found.');
+        header('Location: ?page=manage_users');
+        exit;
+    }
+
+    if ($user->getRole() === $newRole) {
+        Session::set('info', 'No changes were made.');
         header("Location: ?page=edit_user&id={$id}");
         exit;
     }
-    
-    
+
+    $user->setRole($newRole);
+    $userModel->updateUserInfo($id, ['role' => $newRole]);
+
+    if ($id == $currentUserId) {
+        Session::remove('admin_user');
+        Session::set('info', 'Role updated. Please log in again.');
+        header('Location: ?page=login');
+        exit;
+    }
+
+    Session::set('success', 'User role updated successfully.');
+    header("Location: ?page=edit_user&id={$id}");
+    exit;
+}
+
 
     public function deleteUser(int $id)
     {
-        if (!Session::has('admin_user') || Session::get('user')['role'] !== 'admin') {
+        if (!Session::has('admin_user') || Session::get('admin_user')['role'] !== 'admin') {
             Session::set('errors', ['Unauthorized access.']);
             header('Location: ?page=dashboard');
             exit;
