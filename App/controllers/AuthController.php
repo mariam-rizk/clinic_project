@@ -46,15 +46,18 @@ class AuthController
             exit;
         }
 
-        $user = new User($this->db);
-        $user->setName($data['name']);
-        $user->setEmail($data['email']);
-        $user->setPhone($data['phone']);
-        $user->setPassword(password_hash($data['password'], PASSWORD_DEFAULT));
-        $user->setGender($data['gender']);
-        $user->setDateOfBirth($data['dateofbirth']);
-
-        $userModel->create($user);
+         $user = new User($this->db);
+         
+         $user->setName($data['name']);
+         $user->setEmail($data['email']);
+         $user->setPhone($data['phone']);
+         $user->setPassword(password_hash($data['password'], PASSWORD_DEFAULT));
+         $user->setGender($data['gender']);
+         $user->setDateOfBirth($data['dateofbirth']);
+         $user->setRole('user'); 
+         $user->setStatus('active'); 
+         $user->create(); 
+         
 
         Session::set('success', 'Account created successfully.');
         header('Location: ?page=login');
@@ -80,9 +83,6 @@ class AuthController
 
         $userModel = new User($this->db);
         $user = $userModel->findByEmail($data['email']);
-        $additionalInfo = new AdditionalInformation($this->db);
-        $additionalInfo->getByUserId($user->getId());
-        $image = $additionalInfo->getImage();
 
         if (!$user || !password_verify($data['password'], $user->getPassword())) {
             Session::set('errors', ['Invalid email or password.']);
@@ -104,7 +104,6 @@ class AuthController
             'name' => $user->getName(),
             'email' => $user->getEmail(),
             'role' => $user->getRole(),
-            'photo' => $image
         ]);
 
         header('Location: ?page=home');

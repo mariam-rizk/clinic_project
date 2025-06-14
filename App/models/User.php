@@ -53,7 +53,7 @@ class User
 
     
 
-    public function create(User $user): bool
+    public function create(): bool
     {
         $stmt = $this->db->prepare("
             INSERT INTO users (name, phone, email, password, gender, date_of_birth, role, status)
@@ -61,16 +61,17 @@ class User
         ");
         
         return $stmt->execute([
-            ':name' => $user->getName(),
-            ':phone' => $user->getPhone(),
-            ':email' => $user->getEmail(),
-            ':password' => $user->getPassword(),
-            ':gender' => $user->getGender(),
-            ':dob' => $user->getDateOfBirth(),
-            ':role' => $user->getRole(),
-            ':status' => $user->getStatus(),
+            ':name' => $this->getName(),
+            ':phone' => $this->getPhone(),
+            ':email' => $this->getEmail(),
+            ':password' => $this->getPassword(),
+            ':gender' => $this->getGender(),
+            ':dob' => $this->getDateOfBirth(),
+            ':role' => $this->getRole(),
+            ':status' => $this->getStatus(),
         ]);
     }
+
 
     public function findByEmail(string $email): ?User
     {

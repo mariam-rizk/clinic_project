@@ -12,10 +12,13 @@ if (!$user) {
     exit('User not found');
 }
 
-$info = new AdditionalInformation($db);
-$hasInfo = $info->getByUserId($user->getId());
+
+$infoModel = new AdditionalInformation($db);
+$info = $infoModel->getByUserId($user->getId());
+
 
 $currentUserRole = $_SESSION['user']['role'] ?? 'user';
+
 ?>
 
 
@@ -98,7 +101,7 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'user';
                         <div class="col-md-12">
                             <div class="mb-3">
                                 <label>Address</label>
-                                <textarea class="form-control" rows="4" readonly><?= htmlspecialchars($hasInfo ? $info->getAddress() : '') ?></textarea>
+                                <textarea class="form-control" rows="4" readonly><?= htmlspecialchars($info ? ($info->getAddress() ?? '') : '') ?></textarea>
                             </div>
                         </div>
                     </div>

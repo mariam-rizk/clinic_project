@@ -2,6 +2,7 @@
 
 namespace App\controllers\dashboardControllers;
 
+use App\models\AdditionalInformation;
 use App\core\Validation;
 use App\core\Session;
 use App\models\User;
@@ -36,15 +37,19 @@ class AuthController
     
         $userModel = new User($this->db);
         $user = $userModel->findByEmail($data['email']);
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($user->getId());
+        $image = $additionalInfo->getImage();
     
         if ($user) {
             if (password_verify($data['password'], $user->getPassword())) {
                 if (in_array($user->getRole(), ['admin', 'subadmin'])) {
-                    Session::set('user', [
+                    Session::set('admin_user', [
                         'id' => $user->getId(),
                         'name' => $user->getName(),
                         'email' => $user->getEmail(),
-                        'role' => $user->getRole()
+                        'role' => $user->getRole(),
+                        'photo' => $image,
                     ]);
                     header('Location: ?page=dashboard');
                     exit;
@@ -66,11 +71,13 @@ class AuthController
                 'id' => $doctor->getId(),
                 'name' => $doctor->getName(),
                 'email' => $doctor->getEmail(),
+                'photo' => $doctor->getImage(),
                 'role' => 'doctor'
             ]);
             header('Location: ?page=dashboard');
             exit;
         }
+        
     
    
         Session::set('errors', ['Invalid email or password.']);

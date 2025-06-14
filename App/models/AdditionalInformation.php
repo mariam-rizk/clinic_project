@@ -50,20 +50,21 @@ class AdditionalInformation
     }
 
 
-        public function getByUserId(int $userId): bool
+    public function getByUserId(int $userId): ?self
     {
         $stmt = $this->db->prepare("SELECT * FROM additional_information WHERE user_id = :user_id LIMIT 1");
         $stmt->execute([':user_id' => $userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
+    
         if ($row) {
-            $this->user_id = $userId;
-            $this->image = $row['image'] ?? null;
-            $this->address = $row['address'] ?? null;
-            return true;
+            $info = new self($this->db);
+            $info->user_id = $userId;
+            $info->image = $row['image'] ?? null;
+            $info->address = $row['address'] ?? null;
+            return $info;
         }
-
-        return false;
+    
+        return null;
     }
 
 

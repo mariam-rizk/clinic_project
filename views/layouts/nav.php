@@ -20,6 +20,7 @@
                             href="?page=doctors">Doctors</a>
                         <?php if ($user): ?>
                         <div class="d-flex align-items-center gap-2">
+                        <a type="button" class="btn btn-outline-light navigation--button" href="?page=history">History</a>
                         <a type="button" class="btn btn-outline-light navigation--button" href="?page=profile">Profile</a>
                         <a type="button" class="btn btn-outline-light navigation--button" onclick="return confirm('Are you sure you want to logout?')" href="?page=logout">logout</a>
                         <span class="text-white fw-bold">

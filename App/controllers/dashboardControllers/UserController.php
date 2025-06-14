@@ -126,7 +126,7 @@ class UserController
       
      public function updateRole()
     {
-        if (!Session::has('user') || Session::get('user')['role'] !== 'admin') {
+        if (!Session::has('admin_user') || Session::get('user')['role'] !== 'admin') {
             Session::set('errors', 'Unauthorized access.');
             header('Location: ?page=dashboard');
             exit;
@@ -177,7 +177,7 @@ class UserController
 
     public function deleteUser(int $id)
     {
-        if (!Session::has('user') || Session::get('user')['role'] !== 'admin') {
+        if (!Session::has('admin_user') || Session::get('user')['role'] !== 'admin') {
             Session::set('errors', ['Unauthorized access.']);
             header('Location: ?page=dashboard');
             exit;

@@ -1,12 +1,13 @@
 <?php
 
-$user = $_SESSION['user'] ?? null;
+$user = $_SESSION['admin_user'] ?? null;
 $role = $user['role'] ?? '';
 $name = $role === 'doctor' ? 'Dr. ' . htmlspecialchars($user['name']) : htmlspecialchars($user['name']);
 $email = $user['email'] ?? '';
 $photo = !empty($user['photo']) 
     ? 'uploads/profile_pictures/' . $user['photo'] 
-    : 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+    : "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    
 ?>
 
 

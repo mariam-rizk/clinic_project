@@ -17,7 +17,7 @@ $publicPages = ['admin_login', 'login_controller', 'admin_logout'];
 $allowedPagesForDoctor = ['dashboard', 'manage_bookings', 'manage_contacts'];
 
 if (!in_array($page, $publicPages)) {
-    $user = Session::get('user');
+    $user = Session::get('admin_user');
 
     if (!$user) {
         Session::set('info', 'Login required!');

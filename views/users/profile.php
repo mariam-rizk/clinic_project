@@ -21,7 +21,7 @@ $additionalInfoModel->getByUserId($userSession['id']);
 
 $imagePath = 'uploads/profile_pictures/';
 $image = $additionalInfoModel->getImage();
-$defaultIcon = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+$defaultIcon = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
 
 if ($image && file_exists(__DIR__ . '/../../public/' . $imagePath . $image)) {

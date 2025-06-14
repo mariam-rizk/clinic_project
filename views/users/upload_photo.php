@@ -19,7 +19,7 @@ $additionalInfo->getByUserId($userSession['id']);
 
 
 $imagePath = 'uploads/profile_pictures/';
-$defaultIcon = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+$defaultIcon = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
 $image = null;
 if (isset($additionalInfo) && $additionalInfo instanceof \App\models\AdditionalInformation) {
