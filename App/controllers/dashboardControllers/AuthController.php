@@ -62,7 +62,7 @@ class AuthController
         $doctor = Doctor::findByEmail($this->db, $data['email']);
     
         if ($doctor && password_verify($data['password'], $doctor->getPassword())) {
-            Session::set('user', [
+            Session::set('admin_user', [
                 'id' => $doctor->getId(),
                 'name' => $doctor->getName(),
                 'email' => $doctor->getEmail(),
@@ -82,7 +82,7 @@ class AuthController
 
     public function logout()
     {
-        Session::remove('user');
+        Session::remove('admin_user');
         Session::set('success', 'Logged out successfully.');
         header('Location: ?page=admin_login');
         exit;

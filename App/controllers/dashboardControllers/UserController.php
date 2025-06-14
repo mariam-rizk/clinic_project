@@ -93,13 +93,18 @@ class UserController
         }
     
         $id = $_POST['id'] ?? null;
-        $newStatus = $_POST['status'] ?? null;
-    
         $userModel = new User($this->db);
         $user = $userModel->getById($id);
     
         if (!$user) {
             Session::set('errors', ['User not found.']);
+            header('Location: ?page=manage_users');
+            exit;
+        }
+    
+      
+        if ($user->getRole() === 'admin') {
+            Session::set('errors', ['Cannot change status of an admin user.']);
             header('Location: ?page=manage_users');
             exit;
         }
@@ -116,10 +121,10 @@ class UserController
         header('Location: ?page=manage_users');
         exit;
     }
+    
 
-  
- 
-    public function updateRole()
+      
+     public function updateRole()
     {
         if (!Session::has('user') || Session::get('user')['role'] !== 'admin') {
             Session::set('errors', 'Unauthorized access.');
@@ -129,6 +134,7 @@ class UserController
     
         $id = $_POST['id'] ?? null;
         $newRole = $_POST['role'] ?? null;
+        $currentUserId = Session::get('user')['id'];
     
         if (!$id || !$newRole || !in_array($newRole, ['admin', 'subadmin', 'user'])) {
             Session::set('errors', 'Invalid data.');
@@ -145,22 +151,20 @@ class UserController
             exit;
         }
     
-  
         if ($user->getRole() === $newRole) {
             Session::set('info', 'No changes were made.');
             header("Location: ?page=edit_user&id={$id}");
             exit;
         }
     
-      
         $user->setRole($newRole);
         $userModel->updateUserInfo($id, ['role' => $newRole]);
     
-       
-        if (Session::get('user')['id'] == $id) {
-            Session::remove('user');
-            Session::set('info', 'Your role has been changed. Please log in again.');
-            header('Location: ?page=admin_login');
+      
+        if ($id == $currentUserId) {
+            Session::remove('admin_user');
+            Session::set('info', 'Role updated. Please log in again.');
+            header('Location: ?page=login');
             exit;
         }
     
@@ -168,8 +172,8 @@ class UserController
         header("Location: ?page=edit_user&id={$id}");
         exit;
     }
-
-
+    
+    
 
     public function deleteUser(int $id)
     {

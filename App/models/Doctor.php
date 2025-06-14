@@ -30,59 +30,32 @@ class Doctor
         $this->bio = $bio;
     }
 
-    public function getId()
-    {
-        return $this->id;
-    }
-    public function getName()
-    {
-        return $this->name;
-    }
-    public function getEmail()
-    {
-        return $this->email;
-    }
+    public function getId() { return $this->id; }
+    public function getName() { return $this->name; }
+    public function getEmail() { return $this->email; }
+    public function getPassword() { return $this->password; }
+    public function getPhone() { return $this->phone; }
+    public function getGender() { return $this->gender; }
+    public function getImage() { return $this->image; }
+    public function getBio() { return $this->bio; }
 
-    public function getPhone()
-    {
-
-    public function getPassword(){
-        return $this->password;
-    }
-    public function getPhone(){
-
-        return $this->phone;
-    }
-    public function getGender()
-    {
-        return $this->gender;
-    }
-    public function getImage()
-    {
-        return $this->image;
-    }
     public function getMajorId($pdo)
     {
         try {
-            $stm = $pdo->prepare("SELECT name from majors WHERE id= :id");
+            $stm = $pdo->prepare("SELECT name FROM majors WHERE id= :id");
             $stm->bindParam(":id", $this->major_id);
             $stm->execute();
             $major = $stm->fetch(PDO::FETCH_ASSOC);
-            return $major['name'] ? $major['name'] : null;
+            return $major['name'] ?? null;
         } catch (PDOException $e) {
             echo "Error fetching major name: " . $e->getMessage();
             return null;
         }
     }
-    public function getBio()
-    {
-        return $this->bio;
-    }
 
     public static function createDoctor(PDO $pdo, $name, $email, $password, $phone, $gender, $image, $major_id, $bio)
     {
         $stm = $pdo->prepare("INSERT INTO doctors (`name`, `email`, `phone`, `gender`, `image`, `major_id`, `bio`, `password`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-
         $stm->bindParam(1, $name);
         $stm->bindParam(2, $email);
         $stm->bindParam(3, $phone);
@@ -92,8 +65,7 @@ class Doctor
         $stm->bindParam(7, $bio);
         $stm->bindParam(8, $password);
 
-        $query = $stm->execute();
-        if ($query) {
+        if ($stm->execute()) {
             $id = $pdo->lastInsertId();
             return new Doctor($id, $name, $email, $password, $phone, $gender, $image, $major_id, $bio);
         }
@@ -101,27 +73,22 @@ class Doctor
         return null;
     }
 
-    public static function deleteDoctor($pdo, int $id){
-        try{
-            $stm = $pdo->prepare("DELETE FROM doctors WHERE id =:id");
-            $stm->bindParam(":id",$id);
+    public static function deleteDoctor($pdo, int $id)
+    {
+        try {
+            $stm = $pdo->prepare("DELETE FROM doctors WHERE id = :id");
+            $stm->bindParam(":id", $id);
             $stm->execute();
-
-            if ($stm->rowCount() > 0) {
-                    return true; 
-                } else {
-                    return false; 
-                }
-        }catch(PDOException $e){
+            return $stm->rowCount() > 0;
+        } catch (PDOException $e) {
             return "Error deleting doctor: " . $e->getMessage();
-        } 
+        }
     }
 
-    public static function editDoctor($pdo, $id, $name, $email, $phone, $gender, $image, $major_id, $bio ){
-        try{
-
+    public static function editDoctor($pdo, $id, $name, $email, $phone, $gender, $image, $major_id, $bio)
+    {
+        try {
             $stm = $pdo->prepare("UPDATE doctors SET `name` = :name, `email` = :email, `phone` = :phone, `gender` = :gender, `image` = :image, `major_id` = :major_id, `bio` = :bio WHERE `id` = :id");
-
             $stm->bindParam(':name', $name);
             $stm->bindParam(':email', $email);
             $stm->bindParam(':phone', $phone);
@@ -130,14 +97,9 @@ class Doctor
             $stm->bindParam(':major_id', $major_id);
             $stm->bindParam(':bio', $bio);
             $stm->bindParam(':id', $id);
-
             $stm->execute();
-            if ($stm->rowCount() > 0) {
-                    return true; 
-                } else {
-                    return false; 
-                }
-        }catch(PDOException $e){
+            return $stm->rowCount() > 0;
+        } catch (PDOException $e) {
             return "Error updating doctor: " . $e->getMessage();
         }
     }
@@ -173,44 +135,30 @@ class Doctor
         $stm->bindParam(":id", $id);
         $stm->execute();
         $doctor = $stm->fetch(PDO::FETCH_ASSOC);
-        $doctor = new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
-
-        return $doctor;
+        if ($doctor) {
+            return new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
+        }
+        return null;
     }
 
-    public static function countDoctors(PDO $pdo){
-        $stm = $pdo->prepare("SELECT count(*) as count FROM `doctors` ");
+    public static function countDoctors(PDO $pdo)
+    {
+        $stm = $pdo->prepare("SELECT count(*) as count FROM `doctors`");
         $stm->execute();
         $count = $stm->fetch(PDO::FETCH_ASSOC);
         return $count['count'];
     }
-
 
     public static function findByEmail(PDO $pdo, string $email): ?Doctor
     {
         $stmt = $pdo->prepare("SELECT * FROM doctors WHERE email = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
         if ($doctor) {
-            return new Doctor(
-                $doctor['id'],
-                $doctor['name'],
-                $doctor['email'],
-                $doctor['password'],
-                $doctor['phone'],
-                $doctor['gender'],
-                $doctor['image'],
-                $doctor['major_id'],
-                $doctor['bio']
-            );
+            return new Doctor($doctor['id'], $doctor['name'], $doctor['email'], $doctor['password'], $doctor['phone'], $doctor['gender'], $doctor['image'], $doctor['major_id'], $doctor['bio']);
         }
-    
+
         return null;
     }
-
-
-   
-
-
 }

@@ -26,7 +26,7 @@ class ProfileController
             header('Location: ?page=edit_profile');
             exit;
         }
-    
+
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
@@ -34,7 +34,7 @@ class ProfileController
             'gender' => $_POST['gender'] ?? '',
             'date_of_birth' => $_POST['date_of_birth'] ?? ''
         ];
-    
+
         $rules = [
             'name' => ['required', 'string', 'min:3'],
             'email' => ['required', 'email'],
@@ -42,30 +42,24 @@ class ProfileController
             'gender' => ['required', 'in:male,female'],
             'date_of_birth' => ['required', 'date']
         ];
-    
+
         $validator = new Validation();
-    
+
         if (!$validator->validate($data, $rules)) {
             Session::set('errors', $validator->getErrors());
             Session::set('old', $data);
             header('Location: ?page=edit_profile');
             exit;
-        }
-    
+            }
+
         $updated = $this->userModel->updateUserInfo($userId, $data);
-    
-    
+
         if ($updated) {
             Session::set('success', 'Profile updated successfully.');
         } else {
-            if (!Session::get('errors')) {
-                Session::set('info', 'No changes were made or update failed.');
-            }
-            Session::set('old', $data); 
-            header('Location: ?page=edit_profile');
-            exit;
+            Session::set('info', 'No changes were made or update failed.');
         }
-    
+
         header('Location: ?page=profile');
         exit;
     }
