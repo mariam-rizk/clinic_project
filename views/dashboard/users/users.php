@@ -64,6 +64,7 @@ if ($search) {
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Gender</th>
+                                <th>Role</th>
                                 <th width="100">Status</th>
                                 <th width="100">Actions</th>
                             </tr>
@@ -76,6 +77,7 @@ if ($search) {
                                     <td><?= htmlspecialchars($user['email']) ?></td>
                                     <td><?= htmlspecialchars($user['phone']) ?></td>
                                     <td><?= htmlspecialchars($user['gender']) ?></td>
+                                    <td><?= htmlspecialchars($user['role']) ?></td>
                                     <td>
                                         <?php if ($user['status'] === 'active'): ?>
                                             <span class="badge badge-success">

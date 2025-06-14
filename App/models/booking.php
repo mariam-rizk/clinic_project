@@ -114,4 +114,23 @@ class Booking {
 
         return true;
     }
+
+    public function countAllBookings(): int
+    {
+        $query = "SELECT COUNT(*) FROM bookings";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function countPendingBookings(): int
+    {
+        $query = "SELECT COUNT(*) FROM bookings WHERE status = 'pending'";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+
+
 }

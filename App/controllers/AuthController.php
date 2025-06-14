@@ -1,7 +1,6 @@
 <?php
-
 namespace App\controllers;
-
+use App\models\AdditionalInformation;
 use App\core\Validation;
 use App\core\Session;
 use App\models\User;
@@ -81,6 +80,9 @@ class AuthController
 
         $userModel = new User($this->db);
         $user = $userModel->findByEmail($data['email']);
+        $additionalInfo = new AdditionalInformation($this->db);
+        $additionalInfo->getByUserId($user->getId());
+        $image = $additionalInfo->getImage();
 
         if (!$user || !password_verify($data['password'], $user->getPassword())) {
             Session::set('errors', ['Invalid email or password.']);
@@ -101,7 +103,8 @@ class AuthController
             'id' => $user->getId(),
             'name' => $user->getName(),
             'email' => $user->getEmail(),
-            'role' => $user->getRole()
+            'role' => $user->getRole(),
+            'photo' => $image
         ]);
 
         header('Location: ?page=home');

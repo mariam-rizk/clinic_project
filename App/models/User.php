@@ -2,6 +2,7 @@
 
 namespace App\models;
 
+use App\core\Session;
 use PDO;
 
 class User
@@ -96,6 +97,21 @@ class User
 
     public function updateUserInfo(int $userId, array $data): bool
     {
+        
+        if (!empty($data['email'])) {
+            $checkEmailSql = "SELECT id FROM users WHERE email = :email AND id != :id";
+            $checkStmt = $this->db->prepare($checkEmailSql);
+            $checkStmt->execute([
+                ':email' => $data['email'],
+                ':id' => $userId
+            ]);
+    
+            if ($checkStmt->fetch()) {
+                Session::set('errors', ['email' => 'This email is already in use.']);
+                return false;
+            }
+        }
+    
         $allowedFields = ['name', 'email', 'phone', 'gender', 'date_of_birth', 'role'];
         $fields = [];
         $params = [':id' => $userId];
@@ -113,7 +129,8 @@ class User
         $stmt = $this->db->prepare($sql);
         return $stmt->execute($params);
     }
-
+    
+    
   
     private function userRow(array $row): User
     {
