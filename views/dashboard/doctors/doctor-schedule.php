@@ -5,10 +5,10 @@
         <div class="container-fluid my-2">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Doctors</h1>
+                    <h1>Doctors Schedule</h1>
                 </div>
                 <div class="col-sm-6 text-right">
-                    <a href="dashboard.php?page=create-doctor" class="btn btn-primary">New Doctor</a>
+                    <a href="dashboard.php?page=create-appointment&doctor-id=<?=$_GET['doctor-id']?>" class="btn btn-primary">Add Appointment</a>
                 </div>
             </div>
         </div>
@@ -38,48 +38,30 @@
                         <thead>
                             <tr>
                                 <th width="60">ID</th>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Gender</th>
-                                <th>Major</th>
-                                <!-- <th width="100">Status</th> -->
-                                <th width="100">Schedule</th>
+
+                                <th>Day</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
                                 <th width="100">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-	use App\models\Doctor;
-	$doctors = Doctor::getAll($db);
-	foreach($doctors as $doctor):
-	
+    use App\models\Schedule;
+    if(isset($_GET['doctor-id'])):
+        $doctor_id = (int) $_GET['doctor-id'];
+	    $schedules = Schedule::getDoctorSchedule($db,$doctor_id);
+	    foreach($schedules as $schedule):
 	?>
                             <tr>
-                                <td><?= $doctor->getId();?></td>
-                                <td><a class="nav-link p-0 pr-3" data-toggle="dropdown" href="#">
-                                        <img src="dashboard_assets/img/avatar5.png" class='img-circle elevation-2'
-                                            width="40" height="40" alt="">
-                                    </a></td>
-                                <td><?= $doctor->getName();?></td>
-
-                                <td><?= $doctor->getEmail()?></td>
-                                <td><?= $doctor->getPhone();?></td>
-                                <td><?= $doctor->getGender()?></td>
-                                <td><?= $doctor->getMajorId($db)?></td>
+                                <td><?= $schedule->getScheduleId();?></td>
+                                <td><?= $schedule->getDay();?></td>
+                                <td><?= $schedule->getStartTime()?></td>
+                                <td><?= $schedule->getEndTime();?></td>
                                 <td>
-                                    <form action="dashboard.php?page=doctor-schedule&doctor-id=<?=$doctor->getId()?>" method="POST">
-                                        <input type="hidden" name="doctor_id" value="<?=$doctor->getId();?>">
-                                        <button type="submit" class="btn btn-primary">
-                                                View
-                                            </button>
-                                    </form>
-                                </td>
-                                <td>
-                                    <!-- <form action="dashboard.php?page=doctor-controller&action=edit" method="POST"> -->
-                                    <form action="dashboard.php?page=edit-doctor" method="POST">
-                                        <input type="hidden" name="doctor_id" value="<?=$doctor->getId();?>">
+                                    <form action="dashboard.php?page=edit-appointment" method="POST">
+                                        <input type="hidden" name="schedule_id"
+                                            value="<?=$schedule->getScheduleId();?>">
                                         <button type="submit" class="btn"><a href="#">
                                                 <svg class="filament-link-icon w-4 h-4 mr-1"
                                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -91,8 +73,9 @@
                                             </a></button>
                                     </form>
 
-                                    <form action="dashboard.php?page=doctor-controller&action=delete" method="POST">
-                                        <input type="hidden" name="doctor_id" value="<?=$doctor->getId();?>">
+                                    <form action="dashboard.php?page=schedule-controller&action=delete-schedule&doctor-id=<?=$_GET['doctor-id'];?>" method="POST">
+                                        <input type="hidden" name="schedule_id"
+                                            value="<?=$schedule->getScheduleId();?>">
                                         <button type="submit" class="btn"><a href="" class="text-danger w-4 h-4 mr-1">
                                                 <svg wire:loading.remove.delay="" wire:target=""
                                                     class="filament-link-icon w-4 h-4 mr-1"
@@ -108,7 +91,7 @@
                                 </td>
                             </tr>
                             <?php endforeach;?>
-
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

@@ -1,12 +1,12 @@
 <?php
 use App\models\User;
-
+use App\models\Doctor;
 use App\models\Booking;
 
 $userModel = new User($db);
 $userCount = $userModel->countUsers();
 
-
+$doctorCount = Doctor::countDoctors($db);
 
 $doctorId = $_SESSION['doctor']['id'] ?? null;
 
@@ -87,4 +87,3 @@ $pending = $booking->countPendingBookings();
         </div>
     </section>
 </div>
-
